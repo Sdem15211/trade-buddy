@@ -9,7 +9,7 @@ export default async function Home() {
       <h1 className="text-4xl font-bold">Welcome to the App</h1>
       <Button>
         <Link href={session?.user ? "/dashboard" : "/login"}>
-          {session?.user ? "Go to Dashboard" : "Login here"}
+          {session?.user ? "Go to your Dashboard" : "Login here"}
         </Link>
       </Button>
     </div>
