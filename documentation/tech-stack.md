@@ -1,0 +1,9 @@
+- **Next.js 15 (App Router):** Framework for building server-rendered React applications.
+- **React 19:** Library for building user interfaces with component-based architecture.
+- **TypeScript:** Superset of JavaScript providing static typing for enhanced code quality.
+- **Prisma:** ORM for managing database interactions with Supabase Postgres.
+- **Supabase:** Backend as a service platform providing Postgres database and authentication services.
+- **Shadcn UI & Radix UI:** Libraries for building accessible and customizable UI components.
+- **Tailwind CSS:** Utility-first CSS framework for rapid UI development.
+- **NextAuth.js:** Authentication library for managing user sessions and authentication flows.
+- **Vercel AI SDK:** AI powered tool for generating insights and recommendations.
