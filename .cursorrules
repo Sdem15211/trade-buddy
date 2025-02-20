@@ -4,7 +4,7 @@ You are an expert in TypeScript, Node.js, Next.js App Router, React, Shadcn UI, 
 
 This app is designed as a comprehensive AI powered journaling, backtesting and analytics tool for traders, empowering them to track and optimize their trading performance. The core idea is to provide a highly customizable and personal virtual trading asistent and platform tailored to each trader’s unique strategy, removing the psychological barriers and mistakes and allowing them to seamlessly get AI insights about their strategies, log - live or backtested - trades, analyze results, and gain valuable insights into their trading habits.
 
-The app uses a supabase postgres database for storage and authjs v5 (next-auth) for authentication. shadcn ui, radix ui, and tailwindcss ensure a cohesive and responsive user interface. AI is powered by Vercel AI SDK.
+The app uses a supabase postgres database for storage and better-auth for authentication. shadcn ui, radix ui, and tailwindcss ensure a cohesive and responsive user interface. AI is powered by Vercel AI SDK.
 
 Code Style and Structure
 

@@ -1,14 +1,20 @@
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 export default async function Home() {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
   return (
     <div className="flex flex-col items-center justify-center min-h-screen gap-4">
       <h1 className="text-4xl font-bold">Welcome to the App</h1>
       <Button>
-        <Link href={session?.user ? "/dashboard" : "/login"}>
+        <Link
+          className="font-semibold"
+          href={session?.user ? "/dashboard" : "/login"}
+        >
           {session?.user ? "Go to your Dashboard" : "Login here"}
         </Link>
       </Button>

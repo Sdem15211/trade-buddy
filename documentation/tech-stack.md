@@ -5,5 +5,5 @@
 - **Supabase:** Backend as a service platform providing Postgres database and authentication services.
 - **Shadcn UI & Radix UI:** Libraries for building accessible and customizable UI components.
 - **Tailwind CSS:** Utility-first CSS framework for rapid UI development.
-- **NextAuth.js:** Authentication library for managing user sessions and authentication flows.
 - **Vercel AI SDK:** AI powered tool for generating insights and recommendations.
+- **BetterAuth:** Authentication library for managing user sessions and authentication flows.
