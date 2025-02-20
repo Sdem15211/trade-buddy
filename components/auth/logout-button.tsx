@@ -1,26 +1,41 @@
+"use client";
 import { signOut } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
+import { LogOut } from "lucide-react";
+import { useState } from "react";
 export default function LogoutButton() {
   const router = useRouter();
-  const handleLogout = async () =>
-    await signOut({
-      fetchOptions: {
-        onSuccess: () => {
-          router.push("/");
-        },
-      },
-    });
+  const [isSignOut, setIsSignOut] = useState(false);
 
   return (
-    <form
-      action={async () => {
-        await handleLogout();
+    <Button
+      className="gap-2 z-10"
+      variant="secondary"
+      onClick={async () => {
+        setIsSignOut(true);
+        await signOut({
+          fetchOptions: {
+            onSuccess() {
+              router.push("/");
+            },
+          },
+        });
+        setIsSignOut(false);
       }}
+      disabled={isSignOut}
     >
-      <Button variant="outline" type="submit">
-        Sign out
-      </Button>
-    </form>
+      <span className="text-sm">
+        {isSignOut ? (
+          <Loader2 size={15} className="animate-spin" />
+        ) : (
+          <div className="flex items-center gap-2">
+            <LogOut size={16} />
+            Sign Out
+          </div>
+        )}
+      </span>
+    </Button>
   );
 }

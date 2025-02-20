@@ -13,9 +13,9 @@ export default async function Home() {
       <Button>
         <Link
           className="font-semibold"
-          href={session?.user ? "/dashboard" : "/login"}
+          href={session?.session ? "/dashboard" : "/login"}
         >
-          {session?.user ? "Go to your Dashboard" : "Login here"}
+          {session?.session ? "Go to your Dashboard" : "Login here"}
         </Link>
       </Button>
     </div>
