@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
-export default async function Dashboard() {
+export default async function StrategiesPage() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -14,14 +14,12 @@ export default async function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <SidebarTrigger />
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-        </div>
+      <div className="flex items-center gap-2">
+        <SidebarTrigger />
+        <h1 className="text-3xl font-bold">Strategies</h1>
       </div>
       <p className="text-muted-foreground">
-        Welcome back, {session.user?.name || session.user?.email || ""}!
+        View and manage your trading strategies here.
       </p>
     </div>
   );
