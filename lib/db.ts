@@ -1,15 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+import { drizzle } from "drizzle-orm/postgres-js";
+import { config } from "dotenv";
+import postgres from "postgres";
 
-const prismaClientSingleton = () => {
-  return new PrismaClient();
-};
-
-declare const globalThis: {
-  prismaGlobal: ReturnType<typeof prismaClientSingleton>;
-} & typeof global;
-
-const prisma = globalThis.prismaGlobal ?? prismaClientSingleton();
-
-export default prisma;
-
-if (process.env.NODE_ENV !== "production") globalThis.prismaGlobal = prisma;
+config({ path: ".env" });
+const client = postgres(process.env.DATABASE_URL!);
+export const db = drizzle({ client });
