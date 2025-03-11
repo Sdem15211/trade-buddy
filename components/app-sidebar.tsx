@@ -18,7 +18,7 @@ import {
 import { SidebarUserProfile } from "./sidebar-user-profile";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSession } from "@/lib/auth-client";
+import { useSession } from "@/lib/auth/auth-client";
 
 export function AppSidebar() {
   const pathname = usePathname();

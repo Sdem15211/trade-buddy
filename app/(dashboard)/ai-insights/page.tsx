@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { auth } from "@/lib/auth/auth";
 
 export default async function AIInsightsPage() {
   const session = await auth.api.getSession({
