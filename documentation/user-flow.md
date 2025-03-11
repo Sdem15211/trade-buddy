@@ -126,7 +126,7 @@ The **Trade Journal** application is designed to provide a seamless and intuitiv
 2. **API Requests:**
    - Frontend components communicate with backend API routes to perform CRUD operations, submit trade setups, or fetch analytics data.
 3. **Database Operations:**
-   - Backend actions, powered by Prisma, interact with the Supabase Postgres database to store and retrieve data.
+   - Backend actions, powered by Drizzle, interact with the Supabase Postgres database to store and retrieve data.
 4. **AI Processing:**
    - Logged trade setups are sent to AI services (e.g., OpenAI) to generate insights, which are then stored in the database and presented to the user.
 5. **Real-Time Updates:**
