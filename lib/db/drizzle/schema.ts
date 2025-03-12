@@ -76,6 +76,11 @@ export const tradeResultEnum = pgEnum("trade_result", [
   "break_even",
   "loss",
 ]);
+export const instrumentEnum = pgEnum("instrument", [
+  "forex",
+  "crypto",
+  "stocks",
+]);
 
 // Strategy table
 export const strategy = pgTable(
@@ -87,7 +92,8 @@ export const strategy = pgTable(
       .references(() => user.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     description: text("description"),
-    instrument: text("instrument").notNull(), // Forex, Crypto, Stocks, etc.
+    instrument: instrumentEnum("instrument").notNull(),
+    asset: text("asset").notNull(), // Specific asset being traded
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
