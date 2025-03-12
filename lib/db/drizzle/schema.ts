@@ -88,7 +88,6 @@ export const strategy = pgTable(
     name: text("name").notNull(),
     description: text("description"),
     instrument: text("instrument").notNull(), // Forex, Crypto, Stocks, etc.
-    asset: text("asset").notNull(), // Specific asset being traded
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
@@ -122,6 +121,7 @@ export const trade = pgTable(
     strategyId: uuid("strategy_id")
       .notNull()
       .references(() => strategy.id, { onDelete: "cascade" }),
+    asset: text("asset").notNull(), // Specific asset being traded (e.g., EURUSD, AUDCAD)
     status: tradeStatusEnum("status").notNull().default("order_placed"),
     dateOpened: timestamp("date_opened"), // null if order_placed
     dateClosed: timestamp("date_closed"), // null if still open
@@ -138,3 +138,7 @@ export const trade = pgTable(
     index("trade_strategy_id_idx").on(table.strategyId),
   ]
 );
+
+export type CustomField = typeof customField.$inferSelect;
+export type Strategy = typeof strategy.$inferSelect;
+export type Trade = typeof trade.$inferSelect;
