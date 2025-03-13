@@ -1,6 +1,6 @@
 {
-  "id": "477b0f64-428f-4e49-96ff-fbcda7d1d176",
-  "prevId": "947370d3-984e-4b45-acfa-59d1e0ba1101",
+  "id": "e713f179-2573-432a-987c-6f2b536a5dd9",
+  "prevId": "477b0f64-428f-4e49-96ff-fbcda7d1d176",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -307,12 +307,6 @@
           "name": "instrument",
           "type": "instrument",
           "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "asset": {
-          "name": "asset",
-          "type": "text",
           "primaryKey": false,
           "notNull": true
         },

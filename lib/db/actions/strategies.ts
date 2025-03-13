@@ -7,6 +7,7 @@ import { auth } from "../../auth/auth";
 import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
 import { strategy, customField } from "../drizzle/schema";
+import { ActionResponse } from "@/lib/types/strategies";
 
 const customFieldSchema = z.object({
   id: z.string().optional(),
@@ -31,16 +32,30 @@ const deleteStrategySchema = z.object({
   id: z.string().min(1, "Strategy ID is required"),
 });
 
-type CreateStrategyInput = z.infer<typeof createStrategySchema>;
-type UpdateStrategyInput = z.infer<typeof updateStrategySchema>;
-type DeleteStrategyInput = z.infer<typeof deleteStrategySchema>;
+export type CreateStrategyInput = z.infer<typeof createStrategySchema>;
+export type UpdateStrategyInput = z.infer<typeof updateStrategySchema>;
+export type DeleteStrategyInput = z.infer<typeof deleteStrategySchema>;
 
-export async function createStrategy(formData: FormData) {
+export async function createStrategy(
+  prevState: ActionResponse,
+  formData: FormData
+): Promise<ActionResponse> {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
   if (!session?.user?.id) {
-    throw new Error("You must be logged in to create a strategy");
+    return {
+      success: false,
+      message: "You must be logged in to create a strategy",
+    };
+  }
+
+  // Check if FormData is empty (used for resetting the form state)
+  if (formData.entries().next().done) {
+    return {
+      success: false,
+      message: "",
+    };
   }
 
   const rawData = Object.fromEntries(formData.entries());
@@ -54,7 +69,10 @@ export async function createStrategy(formData: FormData) {
     }
   } catch (error) {
     console.error("Error parsing custom fields:", error);
-    throw new Error("Invalid custom fields data");
+    return {
+      success: false,
+      message: "Invalid custom fields data",
+    };
   }
 
   const dataToValidate: CreateStrategyInput = {
@@ -68,7 +86,12 @@ export async function createStrategy(formData: FormData) {
   if (!validationResult.success) {
     const errors = validationResult.error.format();
     console.error("Validation errors:", errors);
-    throw new Error(`Validation failed: ${JSON.stringify(errors)}`);
+    return {
+      success: false,
+      message: "Please fix errors in the form",
+      errors: validationResult.error.flatten().fieldErrors,
+      data: dataToValidate,
+    };
   }
 
   const validatedData = validationResult.data;
@@ -105,11 +128,18 @@ export async function createStrategy(formData: FormData) {
 
       revalidatePath("/strategies");
 
-      return { success: true, strategy: newStrategy };
+      return {
+        success: true,
+        message: "Strategy created successfully",
+        strategy: newStrategy,
+      };
     });
   } catch (error) {
     console.error("Error creating strategy:", error);
-    throw new Error("Failed to create strategy. Please try again.");
+    return {
+      success: false,
+      message: "Failed to create strategy. Please try again.",
+    };
   }
 }
 

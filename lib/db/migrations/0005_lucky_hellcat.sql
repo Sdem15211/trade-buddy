@@ -1,0 +1,1 @@
+ALTER TABLE "strategy" DROP COLUMN "asset";

@@ -93,7 +93,6 @@ export const strategy = pgTable(
     name: text("name").notNull(),
     description: text("description"),
     instrument: instrumentEnum("instrument").notNull(),
-    asset: text("asset").notNull(), // Specific asset being traded
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
@@ -127,8 +126,8 @@ export const trade = pgTable(
     strategyId: uuid("strategy_id")
       .notNull()
       .references(() => strategy.id, { onDelete: "cascade" }),
-    asset: text("asset").notNull(), // Specific asset being traded (e.g., EURUSD, AUDCAD)
     status: tradeStatusEnum("status").notNull().default("order_placed"),
+    asset: text("asset").notNull(),
     dateOpened: timestamp("date_opened"), // null if order_placed
     dateClosed: timestamp("date_closed"), // null if still open
     result: tradeResultEnum("result"), // null if not closed

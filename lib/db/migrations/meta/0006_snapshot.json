@@ -1,6 +1,6 @@
 {
-  "id": "983b7760-3030-454a-a929-e7bc1897b24d",
-  "prevId": "ae148ff8-058d-4ea0-9abd-f069ed3c2e7d",
+  "id": "36844482-6a4f-498d-91b7-c78c4c9a1e85",
+  "prevId": "e713f179-2573-432a-987c-6f2b536a5dd9",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -310,12 +310,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "asset": {
-          "name": "asset",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -389,12 +383,6 @@
         "strategy_id": {
           "name": "strategy_id",
           "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "asset": {
-          "name": "asset",
-          "type": "text",
           "primaryKey": false,
           "notNull": true
         },

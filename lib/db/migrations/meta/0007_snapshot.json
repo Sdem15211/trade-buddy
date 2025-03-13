@@ -1,6 +1,6 @@
 {
-  "id": "947370d3-984e-4b45-acfa-59d1e0ba1101",
-  "prevId": "983b7760-3030-454a-a929-e7bc1897b24d",
+  "id": "3dd239b1-b1b8-469d-92c9-2ecadc53867f",
+  "prevId": "36844482-6a4f-498d-91b7-c78c4c9a1e85",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -305,13 +305,8 @@
         },
         "instrument": {
           "name": "instrument",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "asset": {
-          "name": "asset",
-          "type": "text",
+          "type": "instrument",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
         },
@@ -391,12 +386,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "asset": {
-          "name": "asset",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
         "status": {
           "name": "status",
           "type": "trade_status",
@@ -404,6 +393,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'order_placed'"
+        },
+        "asset": {
+          "name": "asset",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
         },
         "date_opened": {
           "name": "date_opened",
