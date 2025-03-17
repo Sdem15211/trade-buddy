@@ -290,58 +290,44 @@ export async function updateStrategy(formData: FormData) {
   }
 }
 
-export async function deleteStrategy(formData: FormData) {
+export async function deleteStrategy(id: string): Promise<ActionResponse> {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
   if (!session?.user?.id) {
-    throw new Error("You must be logged in to delete a strategy");
+    return {
+      success: false,
+      message: "You must be logged in to delete a strategy",
+    };
   }
-
-  const rawData = Object.fromEntries(formData.entries());
-
-  const dataToValidate: DeleteStrategyInput = {
-    id: rawData.id as string,
-  };
-
-  const validationResult = deleteStrategySchema.safeParse(dataToValidate);
-
-  if (!validationResult.success) {
-    const errors = validationResult.error.format();
-    console.error("Validation errors:", errors);
-    throw new Error(`Validation failed: ${JSON.stringify(errors)}`);
-  }
-
-  const validatedData = validationResult.data;
 
   try {
     const existingStrategy = await db.query.strategy.findFirst({
       where: (fields: any, { eq, and }: any) =>
-        and(
-          eq(fields.id, validatedData.id),
-          eq(fields.userId, session.user.id)
-        ),
+        and(eq(fields.id, id), eq(fields.userId, session.user.id)),
     });
 
     if (!existingStrategy) {
-      throw new Error(
-        "Strategy not found or you don't have permission to delete it"
-      );
+      return {
+        success: false,
+        message: "Strategy not found or you don't have permission to delete it",
+      };
     }
 
     return await db.transaction(async (tx: any) => {
-      await tx
-        .delete(customField)
-        .where(eq(customField.strategyId, validatedData.id));
+      await tx.delete(customField).where(eq(customField.strategyId, id));
 
-      await tx.delete(strategy).where(eq(strategy.id, validatedData.id));
+      await tx.delete(strategy).where(eq(strategy.id, id));
 
       revalidatePath("/strategies");
 
-      return { success: true };
+      return { success: true, message: "Strategy deleted successfully" };
     });
   } catch (error) {
     console.error("Error deleting strategy:", error);
-    throw new Error("Failed to delete strategy. Please try again.");
+    return {
+      success: false,
+      message: "Failed to delete strategy. Please try again.",
+    };
   }
 }
