@@ -7,7 +7,7 @@ import { PlusCircle } from "lucide-react";
 import { CreateStrategyDialog } from "@/components/strategies/create-strategy-dialog";
 import { StrategyCard } from "@/components/strategies/strategy-card";
 import { db } from "@/lib/db/db";
-import { strategy } from "@/lib/db/drizzle/schema";
+import { strategy, strategyConfig } from "@/lib/db/drizzle/schema";
 import { eq } from "drizzle-orm";
 
 export default async function StrategiesPage() {
@@ -21,6 +21,7 @@ export default async function StrategiesPage() {
 
   // Fetch user's strategies
   const strategies = await db.query.strategy.findMany({
+    ...strategyConfig,
     where: eq(strategy.userId, session.user.id),
     orderBy: (strategy, { desc }) => [desc(strategy.createdAt)],
   });

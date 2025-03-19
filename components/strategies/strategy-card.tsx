@@ -29,7 +29,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Calendar, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Calendar, MoreHorizontal, Trash2 } from "lucide-react";
 import { deleteStrategy } from "@/lib/db/actions/strategies";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -102,15 +102,6 @@ export function StrategyCard({ strategy }: StrategyCardProps) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem asChild>
-                    <Link
-                      href={`/strategies/${id}/edit`}
-                      className="cursor-pointer"
-                    >
-                      <Pencil className="h-4 w-4 mr-2" />
-                      Modify strategy
-                    </Link>
-                  </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => setShowDeleteDialog(true)}
                     className="text-destructive focus:text-destructive cursor-pointer"

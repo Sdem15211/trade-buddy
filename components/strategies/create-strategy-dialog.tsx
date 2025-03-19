@@ -29,13 +29,9 @@ import { ActionResponse } from "@/lib/types/strategies";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Check, Trash } from "lucide-react";
+
 interface CreateStrategyDialogProps {
   children: React.ReactNode;
-}
-
-enum FormStep {
-  BasicInfo = 0,
-  CustomFields = 1,
 }
 
 interface CustomField {
@@ -43,6 +39,7 @@ interface CustomField {
   type: "text" | "select" | "multi-select";
   options?: string[];
   required: boolean;
+  id?: string;
 }
 
 const DEFAULT_FIELDS: CustomField[] = [
@@ -78,7 +75,7 @@ const initialState: ActionResponse = {
 
 export function CreateStrategyDialog({ children }: CreateStrategyDialogProps) {
   const [open, setOpen] = useState(false);
-  const [currentStep, setCurrentStep] = useState<FormStep>(FormStep.BasicInfo);
+  const [currentStep, setCurrentStep] = useState<"1" | "2">("1");
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [newField, setNewField] = useState<CustomField>({
     name: "",
@@ -105,7 +102,7 @@ export function CreateStrategyDialog({ children }: CreateStrategyDialogProps) {
       setOpen(false);
       resetForm();
     }
-  }, [state.success, state.message, formAction]);
+  }, [state.success, state.message]);
 
   const handleDialogOpenChange = (newOpen: boolean) => {
     if (!isPending) {
@@ -117,7 +114,7 @@ export function CreateStrategyDialog({ children }: CreateStrategyDialogProps) {
   };
 
   const resetForm = () => {
-    setCurrentStep(FormStep.BasicInfo);
+    setCurrentStep("1");
     setCustomFields([]);
     setNewField({
       name: "",
@@ -136,18 +133,14 @@ export function CreateStrategyDialog({ children }: CreateStrategyDialogProps) {
     }
   };
 
-  const handleNextStep = () => {
+  const handleNextStep = (e: React.MouseEvent) => {
+    e.preventDefault();
+
     if (formRef.current) {
       const formData = new FormData(formRef.current);
       const name = formData.get("name") as string;
       const description = formData.get("description") as string;
       const instrument = formData.get("instrument") as string;
-
-      setBasicInfo({
-        name,
-        description,
-        instrument,
-      });
 
       if (!name) {
         toast.error("Strategy name is required");
@@ -159,12 +152,19 @@ export function CreateStrategyDialog({ children }: CreateStrategyDialogProps) {
         return;
       }
 
-      setCurrentStep(FormStep.CustomFields);
+      setBasicInfo({
+        name,
+        description,
+        instrument,
+      });
+
+      setCurrentStep("2");
     }
   };
 
-  const handlePreviousStep = () => {
-    setCurrentStep(FormStep.BasicInfo);
+  const handlePreviousStep = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setCurrentStep("1");
   };
 
   const addCustomField = () => {
@@ -197,7 +197,7 @@ export function CreateStrategyDialog({ children }: CreateStrategyDialogProps) {
           : fieldOptions.split(",").map((opt) => opt.trim()),
     };
 
-    setCustomFields([...customFields, fieldToAdd]);
+    setCustomFields((prev) => [...prev, fieldToAdd]);
 
     setNewField({
       name: "",
@@ -208,9 +208,11 @@ export function CreateStrategyDialog({ children }: CreateStrategyDialogProps) {
   };
 
   const removeCustomField = (index: number) => {
-    const updatedFields = [...customFields];
-    updatedFields.splice(index, 1);
-    setCustomFields(updatedFields);
+    setCustomFields((prev) => {
+      const updatedFields = [...prev];
+      updatedFields.splice(index, 1);
+      return updatedFields;
+    });
   };
 
   return (
@@ -231,23 +233,19 @@ export function CreateStrategyDialog({ children }: CreateStrategyDialogProps) {
               <div className="relative flex mb-8">
                 <div
                   className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center border-2 z-10",
-                    currentStep >= FormStep.BasicInfo
+                    "w-8 h-8 rounded-md flex items-center justify-center border-2 z-10",
+                    currentStep >= "1"
                       ? "bg-primary border-primary text-primary-foreground"
                       : "border-muted-foreground text-muted-foreground bg-background"
                   )}
                 >
-                  {currentStep > FormStep.BasicInfo ? (
-                    <Check className="h-4 w-4" />
-                  ) : (
-                    "1"
-                  )}
+                  {currentStep === "2" ? <Check className="h-4 w-4" /> : "1"}
                 </div>
                 <div className="ml-4">
                   <p
                     className={cn(
                       "font-medium text-base",
-                      currentStep === FormStep.BasicInfo ? "text-primary" : ""
+                      currentStep === "1" ? "text-primary" : ""
                     )}
                   >
                     Basic Info
@@ -262,25 +260,19 @@ export function CreateStrategyDialog({ children }: CreateStrategyDialogProps) {
               <div className="relative flex">
                 <div
                   className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center border-2 z-10",
-                    currentStep >= FormStep.CustomFields
+                    "w-8 h-8 rounded-md flex items-center justify-center border-2 z-10",
+                    currentStep >= "2"
                       ? "bg-primary border-primary text-primary-foreground"
                       : "border-muted-foreground text-muted-foreground bg-background"
                   )}
                 >
-                  {currentStep > FormStep.CustomFields ? (
-                    <Check className="h-4 w-4" />
-                  ) : (
-                    "2"
-                  )}
+                  {currentStep > "2" ? <Check className="h-4 w-4" /> : "2"}
                 </div>
                 <div className="ml-4">
                   <p
                     className={cn(
                       "font-medium",
-                      currentStep === FormStep.CustomFields
-                        ? "text-primary"
-                        : ""
+                      currentStep === "2" ? "text-primary" : ""
                     )}
                   >
                     Custom Fields
@@ -297,28 +289,25 @@ export function CreateStrategyDialog({ children }: CreateStrategyDialogProps) {
           <div className="flex-1 flex flex-col overflow-hidden">
             <form
               ref={formRef}
-              action={(formData) => {
+              action={(formData: FormData) => {
                 formData.append("customFields", JSON.stringify(customFields));
+                formData.set("name", basicInfo.name);
+                formData.set("description", basicInfo.description || "");
+                formData.set("instrument", basicInfo.instrument);
 
-                if (currentStep === FormStep.CustomFields) {
-                  formData.set("name", basicInfo.name);
-                  formData.set("description", basicInfo.description || "");
-                  formData.set("instrument", basicInfo.instrument);
-
-                  return formAction(formData);
-                }
+                return formAction(formData);
               }}
               className="flex flex-col flex-1 overflow-hidden"
             >
               <DialogHeader>
                 <div className="px-6 py-4 border-b">
                   <DialogTitle className="text-lg font-medium tracking-tight">
-                    {currentStep === FormStep.BasicInfo
+                    {currentStep === "1"
                       ? "Strategy Information"
                       : "Configure Trade Fields"}
                   </DialogTitle>
                   <DialogDescription className="text-sm text-muted-foreground tracking-tight">
-                    {currentStep === FormStep.BasicInfo
+                    {currentStep === "1"
                       ? "Enter the basic details of your trading strategy"
                       : "Customize what information you'll track for each trade"}
                   </DialogDescription>
@@ -328,7 +317,7 @@ export function CreateStrategyDialog({ children }: CreateStrategyDialogProps) {
               {/* Form content */}
               <div className="overflow-y-auto flex-1 p-6">
                 <div className="space-y-6">
-                  {currentStep === FormStep.BasicInfo ? (
+                  {currentStep === "1" ? (
                     <>
                       <div className="space-y-4">
                         <div className="space-y-2">
@@ -338,12 +327,12 @@ export function CreateStrategyDialog({ children }: CreateStrategyDialogProps) {
                           <Input
                             id="name"
                             name="name"
-                            defaultValue={basicInfo.name || state?.data?.name}
                             placeholder="My Trading Strategy"
                             className={cn(
-                              "focus-visible:ring-offset-2",
+                              "focus-visible:ring-offset-1",
                               state?.errors?.name ? "border-red-500" : ""
                             )}
+                            autoComplete="off"
                           />
                           {state?.errors?.name && (
                             <div className="name">
@@ -366,12 +355,9 @@ export function CreateStrategyDialog({ children }: CreateStrategyDialogProps) {
                           <Textarea
                             id="description"
                             name="description"
-                            defaultValue={
-                              basicInfo.description || state?.data?.description
-                            }
                             placeholder="Describe your trading strategy..."
                             className={cn(
-                              "focus-visible:ring-offset-2 min-h-[120px]",
+                              "focus-visible:ring-offset-1 min-h-[120px]",
                               state?.errors?.description ? "border-red-500" : ""
                             )}
                           />
@@ -390,14 +376,8 @@ export function CreateStrategyDialog({ children }: CreateStrategyDialogProps) {
                           <Label htmlFor="instrument" className="text-base">
                             Instrument
                           </Label>
-                          <Select
-                            name="instrument"
-                            required
-                            defaultValue={
-                              basicInfo.instrument || state?.data?.instrument
-                            }
-                          >
-                            <SelectTrigger className="focus-visible:ring-offset-2">
+                          <Select name="instrument" required>
+                            <SelectTrigger className="focus-visible:ring-offset-1">
                               <SelectValue placeholder="Select instrument" />
                             </SelectTrigger>
                             <SelectContent>
@@ -544,20 +524,24 @@ export function CreateStrategyDialog({ children }: CreateStrategyDialogProps) {
                                 <Label htmlFor="fieldName">Field Name</Label>
                                 <Input
                                   id="fieldName"
+                                  name="fieldName"
+                                  type="text"
                                   value={newField.name}
-                                  onChange={(e) =>
+                                  onChange={(e) => {
                                     setNewField({
                                       ...newField,
                                       name: e.target.value,
-                                    })
-                                  }
+                                    });
+                                  }}
                                   placeholder="e.g., Risk/Reward Ratio"
-                                  className="focus-visible:ring-offset-2"
+                                  className="focus-visible:ring-offset-1"
+                                  autoComplete="off"
                                 />
                               </div>
                               <div className="space-y-2">
                                 <Label htmlFor="fieldType">Field Type</Label>
                                 <Select
+                                  name="fieldType"
                                   value={newField.type}
                                   onValueChange={(
                                     value: "text" | "select" | "multi-select"
@@ -565,10 +549,7 @@ export function CreateStrategyDialog({ children }: CreateStrategyDialogProps) {
                                     setNewField({ ...newField, type: value })
                                   }
                                 >
-                                  <SelectTrigger
-                                    id="fieldType"
-                                    className="focus-visible:ring-offset-2"
-                                  >
+                                  <SelectTrigger className="focus-visible:ring-offset-1">
                                     <SelectValue placeholder="Select type" />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -595,19 +576,21 @@ export function CreateStrategyDialog({ children }: CreateStrategyDialogProps) {
                                 </Label>
                                 <Input
                                   id="fieldOptions"
+                                  name="fieldOptions"
                                   value={fieldOptions}
                                   onChange={(e) =>
                                     setFieldOptions(e.target.value)
                                   }
                                   placeholder="e.g., Option 1, Option 2, Option 3"
-                                  className="focus-visible:ring-offset-2"
+                                  className="focus-visible:ring-offset-1"
+                                  autoComplete="off"
                                 />
                               </div>
                             )}
 
                             <div className="flex items-center space-x-2 mt-2">
                               <Checkbox
-                                id="fieldRequired"
+                                name="fieldRequired"
                                 checked={newField.required}
                                 onCheckedChange={(checked) =>
                                   setNewField({
@@ -615,7 +598,7 @@ export function CreateStrategyDialog({ children }: CreateStrategyDialogProps) {
                                     required: checked === true,
                                   })
                                 }
-                                className="focus-visible:ring-offset-2"
+                                className="focus-visible:ring-offset-1"
                               />
                               <Label
                                 htmlFor="fieldRequired"
@@ -641,7 +624,7 @@ export function CreateStrategyDialog({ children }: CreateStrategyDialogProps) {
               </div>
 
               <DialogFooter className="sticky bottom-0 bg-background p-4 border-t">
-                {currentStep === FormStep.BasicInfo ? (
+                {currentStep === "1" ? (
                   <>
                     <Button
                       type="button"
@@ -651,14 +634,13 @@ export function CreateStrategyDialog({ children }: CreateStrategyDialogProps) {
                     >
                       Cancel
                     </Button>
-                    <div
-                      className={`inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 cursor-pointer ${
-                        isPending ? "opacity-50 pointer-events-none" : ""
-                      }`}
+                    <Button
+                      type="button"
                       onClick={handleNextStep}
+                      disabled={isPending}
                     >
                       Next
-                    </div>
+                    </Button>
                   </>
                 ) : (
                   <>

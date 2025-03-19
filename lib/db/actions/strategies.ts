@@ -143,12 +143,18 @@ export async function createStrategy(
   }
 }
 
-export async function updateStrategy(formData: FormData) {
+export async function updateStrategy(
+  prevState: ActionResponse,
+  formData: FormData
+): Promise<ActionResponse> {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
   if (!session?.user?.id) {
-    throw new Error("You must be logged in to update a strategy");
+    return {
+      success: false,
+      message: "You must be logged in to update a strategy",
+    };
   }
 
   const rawData = Object.fromEntries(formData.entries());
@@ -162,7 +168,10 @@ export async function updateStrategy(formData: FormData) {
     }
   } catch (error) {
     console.error("Error parsing custom fields:", error);
-    throw new Error("Invalid custom fields data");
+    return {
+      success: false,
+      message: "Invalid custom fields data",
+    };
   }
 
   const dataToValidate: UpdateStrategyInput = {
@@ -172,13 +181,17 @@ export async function updateStrategy(formData: FormData) {
     instrument: rawData.instrument as string,
     customFields: customFieldsData,
   };
-
   const validationResult = updateStrategySchema.safeParse(dataToValidate);
 
   if (!validationResult.success) {
     const errors = validationResult.error.format();
     console.error("Validation errors:", errors);
-    throw new Error(`Validation failed: ${JSON.stringify(errors)}`);
+    return {
+      success: false,
+      message: "Please fix errors in the form",
+      errors: validationResult.error.flatten().fieldErrors,
+      data: dataToValidate,
+    };
   }
 
   const validatedData = validationResult.data;
@@ -193,12 +206,14 @@ export async function updateStrategy(formData: FormData) {
     });
 
     if (!existingStrategy) {
-      throw new Error(
-        "Strategy not found or you don't have permission to update it"
-      );
+      return {
+        success: false,
+        message: "Strategy not found or you don't have permission to update it",
+      };
     }
 
     return await db.transaction(async (tx: any) => {
+      // Update the strategy
       const [updatedStrategy] = await tx
         .update(strategy)
         .set({
@@ -210,83 +225,40 @@ export async function updateStrategy(formData: FormData) {
         .where(eq(strategy.id, validatedData.id))
         .returning();
 
+      // Simplified approach: Delete all existing custom fields
+      await tx
+        .delete(customField)
+        .where(eq(customField.strategyId, validatedData.id));
+
+      // Create new custom fields if any exist
       if (validatedData.customFields && validatedData.customFields.length > 0) {
-        const existingFields = await tx
-          .select({ id: customField.id })
-          .from(customField)
-          .where(eq(customField.strategyId, validatedData.id));
+        const fieldsToCreate = validatedData.customFields.map((field) => ({
+          strategyId: validatedData.id,
+          name: field.name,
+          type: field.type,
+          options:
+            field.options && field.options.length > 0 ? field.options : null,
+          required: field.required,
+        }));
 
-        const existingFieldIds = new Set(
-          existingFields.map((field: any) => field.id)
-        );
-
-        const fieldsToUpdate: any[] = [];
-        const fieldsToCreate: any[] = [];
-
-        validatedData.customFields.forEach((field: any) => {
-          if (field.id && existingFieldIds.has(field.id)) {
-            fieldsToUpdate.push({
-              id: field.id,
-              name: field.name,
-              type: field.type,
-              options:
-                field.options && field.options.length > 0
-                  ? field.options
-                  : null,
-              required: field.required,
-            });
-            existingFieldIds.delete(field.id);
-          } else {
-            fieldsToCreate.push({
-              strategyId: validatedData.id,
-              name: field.name,
-              type: field.type,
-              options:
-                field.options && field.options.length > 0
-                  ? field.options
-                  : null,
-              required: field.required,
-            });
-          }
-        });
-
-        for (const field of fieldsToUpdate) {
-          await tx
-            .update(customField)
-            .set({
-              name: field.name,
-              type: field.type,
-              options: field.options,
-              required: field.required,
-            })
-            .where(eq(customField.id, field.id));
-        }
-
-        if (fieldsToCreate.length > 0) {
-          await tx.insert(customField).values(fieldsToCreate);
-        }
-
-        if (existingFieldIds.size > 0) {
-          for (const fieldId of existingFieldIds) {
-            await tx
-              .delete(customField)
-              .where(eq(customField.id, fieldId as string));
-          }
-        }
-      } else {
-        await tx
-          .delete(customField)
-          .where(eq(customField.strategyId, validatedData.id));
+        await tx.insert(customField).values(fieldsToCreate);
       }
 
       revalidatePath("/strategies");
       revalidatePath(`/strategies/${validatedData.id}`);
 
-      return { success: true, strategy: updatedStrategy };
+      return {
+        success: true,
+        message: "Strategy updated successfully",
+        strategy: updatedStrategy,
+      };
     });
   } catch (error) {
     console.error("Error updating strategy:", error);
-    throw new Error("Failed to update strategy. Please try again.");
+    return {
+      success: false,
+      message: "Failed to update strategy. Please try again.",
+    };
   }
 }
 

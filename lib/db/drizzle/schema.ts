@@ -9,6 +9,7 @@ import {
   index,
   pgEnum,
 } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -143,6 +144,25 @@ export const trade = pgTable(
     index("trade_strategy_id_idx").on(table.strategyId),
   ]
 );
+
+// Relations
+export const strategyRelations = relations(strategy, ({ many }) => ({
+  customFields: many(customField),
+}));
+
+export const customFieldRelations = relations(customField, ({ one }) => ({
+  strategy: one(strategy, {
+    fields: [customField.strategyId],
+    references: [strategy.id],
+  }),
+}));
+
+// Query Config
+export const strategyConfig = {
+  with: {
+    customFields: true,
+  },
+} as const;
 
 export type CustomField = typeof customField.$inferSelect;
 export type Strategy = typeof strategy.$inferSelect;
