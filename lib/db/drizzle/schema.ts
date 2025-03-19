@@ -8,6 +8,7 @@ import {
   integer,
   index,
   pgEnum,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -97,7 +98,13 @@ export const strategy = pgTable(
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
-  (table) => [index("strategy_user_id_idx").on(table.userId)]
+  (table) => [
+    index("strategy_user_id_idx").on(table.userId),
+    uniqueIndex("strategy_user_id_name_unique_idx").on(
+      table.userId,
+      table.name
+    ),
+  ]
 );
 
 // Custom Field table for strategies

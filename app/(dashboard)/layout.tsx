@@ -10,7 +10,7 @@ export default function DashboardLayout({
     <SidebarProvider>
       <div className="flex min-h-screen bg-background w-full">
         <AppSidebar />
-        <SidebarInset>{children}</SidebarInset>
+        <SidebarInset className="flex-1 p-6">{children}</SidebarInset>
       </div>
     </SidebarProvider>
   );

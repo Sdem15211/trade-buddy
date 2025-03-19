@@ -27,11 +27,11 @@ export default async function StrategiesPage() {
   });
 
   return (
-    <div className="p-6 w-full shrink-0 flex-1 space-y-6">
+    <div className="w-full shrink-0 flex-1 space-y-6">
       <div className="w-full flex items-center justify-between">
         <div className="flex items-center gap-2">
           <SidebarTrigger />
-          <h1 className="text-3xl font-bold">Strategies</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Strategies</h1>
         </div>
         <CreateStrategyDialog>
           <Button>

@@ -33,6 +33,7 @@ import { Calendar, MoreHorizontal, Trash2 } from "lucide-react";
 import { deleteStrategy } from "@/lib/db/actions/strategies";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { createSlug } from "@/lib/utils";
 
 interface StrategyCardProps {
   strategy: {
@@ -49,6 +50,7 @@ export function StrategyCard({ strategy }: StrategyCardProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
+  const strategySlug = createSlug(name);
 
   const handleDelete = async () => {
     try {
@@ -72,7 +74,7 @@ export function StrategyCard({ strategy }: StrategyCardProps) {
 
   return (
     <Card className="h-full transition-all hover:shadow-md relative group">
-      <Link href={`/strategies/${id}`} className="block h-full">
+      <Link href={`/strategies/${strategySlug}`} className="block h-full">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="line-clamp-1">{name}</CardTitle>

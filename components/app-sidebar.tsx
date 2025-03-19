@@ -13,7 +13,6 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarRail,
-  useSidebar,
 } from "./ui/sidebar";
 import { SidebarUserProfile } from "./sidebar-user-profile";
 import Link from "next/link";
@@ -77,7 +76,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => {
-                const isActive = pathname === item.path;
+                const isActive = pathname.startsWith(item.path);
 
                 return (
                   <SidebarMenuItem key={item.title}>

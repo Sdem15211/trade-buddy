@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "strategy_user_id_name_unique_idx" ON "strategy" USING btree ("user_id","name");
