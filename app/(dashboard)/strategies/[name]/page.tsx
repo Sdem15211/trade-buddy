@@ -1,15 +1,15 @@
 import {
   getStrategyByName,
   getRecentTradesByStrategyId,
-} from "@/lib/db/actions/strategies";
+} from "@/lib/db/queries/strategies";
 import { slugToReadable } from "@/lib/utils";
 import { notFound } from "next/navigation";
 import StrategyDetail from "./components/strategy-detail";
 import { Suspense } from "react";
+
+type paramsType = Promise<{ name: string }>;
 interface StrategyPageProps {
-  params: {
-    name: string;
-  };
+  params: paramsType;
 }
 
 export default async function StrategyPage({ params }: StrategyPageProps) {
