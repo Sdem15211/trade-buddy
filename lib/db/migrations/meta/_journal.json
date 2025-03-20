@@ -43,6 +43,20 @@
       "when": 1742385052919,
       "tag": "0008_thin_sunset_bain",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1742392111226,
+      "tag": "0009_mixed_screwball",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1742392149224,
+      "tag": "0010_striped_paibok",
+      "breakpoints": true
     }
   ]
 }

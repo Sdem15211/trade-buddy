@@ -11,27 +11,33 @@ import {
   DropdownMenu,
   DropdownMenuContent,
 } from "@/components/ui/dropdown-menu";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Strategy } from "@/lib/db/drizzle/schema";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tabs } from "@/components/ui/tabs";
 import { useState } from "react";
-import { SidebarTrigger } from "@/components/ui/sidebar";
+import Link from "next/link";
 
 export default function StrategyDetail({ strategy }: { strategy: Strategy }) {
   const [activeTab, setActiveTab] = useState("live");
   return (
     <div className="flex flex-col gap-6 h-full w-full">
       <div className="relative flex items-center justify-between border-b pb-5">
-        <div className="flex items-center gap-2">
-          <SidebarTrigger />
-          <h1 className="text-3xl font-bold tracking-tighter">
-            {strategy.name}
-          </h1>
-          <Badge variant="outline" className="font-medium">
-            {strategy.instrument}
-          </Badge>
+        <div className="flex items-center gap-4">
+          <Link href="/strategies">
+            <Button variant="ghost" size="icon" className="h-9 w-9">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </Link>
+          <div className="flex items-center gap-2">
+            <h1 className="text-3xl font-bold tracking-tighter">
+              {strategy.name}
+            </h1>
+            <Badge variant="outline" className="font-medium mt-1">
+              {strategy.instrument}
+            </Badge>
+          </div>
         </div>
         <Tabs
           defaultValue="live"

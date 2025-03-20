@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth/auth";
 import { headers } from "next/headers";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { CreateStrategyDialog } from "@/components/strategies/create-strategy-dialog";
@@ -30,7 +29,6 @@ export default async function StrategiesPage() {
     <div className="w-full shrink-0 flex-1 space-y-6">
       <div className="w-full flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <SidebarTrigger />
           <h1 className="text-3xl font-bold tracking-tight">Strategies</h1>
         </div>
         <CreateStrategyDialog>

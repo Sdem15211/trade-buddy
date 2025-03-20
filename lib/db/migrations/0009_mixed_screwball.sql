@@ -1,0 +1,1 @@
+CREATE TYPE "public"."direction" AS ENUM('long', 'short');

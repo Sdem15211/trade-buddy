@@ -13,6 +13,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarRail,
+  SidebarTrigger,
 } from "./ui/sidebar";
 import { SidebarUserProfile } from "./sidebar-user-profile";
 import Link from "next/link";
@@ -56,18 +57,21 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="text-sidebar-foreground">
       <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <Link href="/dashboard">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <Database className="size-4" />
-                </div>
-                <span className="font-semibold">TRAID</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <div className="flex flex-col items-end justify-center w-full">
+          <SidebarTrigger className="mb-2" />
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton size="lg" asChild>
+                <Link href="/dashboard">
+                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                    <Database className="size-4" />
+                  </div>
+                  <span className="font-semibold">TRAID</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </div>
       </SidebarHeader>
 
       <SidebarContent>

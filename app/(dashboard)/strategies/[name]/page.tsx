@@ -21,8 +21,6 @@ export default async function StrategyPage({ params }: StrategyPageProps) {
     return notFound();
   }
 
-  const recentTrades = await getRecentTradesByStrategyId(strategy.id);
-
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <StrategyDetail strategy={strategy} />

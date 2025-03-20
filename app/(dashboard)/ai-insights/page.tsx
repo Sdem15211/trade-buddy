@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import { auth } from "@/lib/auth/auth";
 
 export default async function AIInsightsPage() {
@@ -15,7 +14,6 @@ export default async function AIInsightsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
-        <SidebarTrigger />
         <h1 className="text-3xl font-bold">AI Insights</h1>
       </div>
       <p className="text-muted-foreground">

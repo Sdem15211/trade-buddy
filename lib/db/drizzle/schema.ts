@@ -83,6 +83,7 @@ export const instrumentEnum = pgEnum("instrument", [
   "crypto",
   "stocks",
 ]);
+export const directionEnum = pgEnum("direction", ["long", "short"]);
 
 // Strategy table
 export const strategy = pgTable(
@@ -138,6 +139,7 @@ export const trade = pgTable(
     asset: text("asset").notNull(),
     dateOpened: timestamp("date_opened"), // null if order_placed
     dateClosed: timestamp("date_closed"), // null if still open
+    direction: directionEnum("direction").notNull(),
     result: tradeResultEnum("result"), // null if not closed
     profitLoss: integer("profit_loss"), // Can be positive or negative
     notes: text("notes"),
