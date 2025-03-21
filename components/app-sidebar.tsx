@@ -14,6 +14,7 @@ import {
   SidebarMenuButton,
   SidebarRail,
   SidebarTrigger,
+  useSidebar,
 } from "./ui/sidebar";
 import { SidebarUserProfile } from "./sidebar-user-profile";
 import Link from "next/link";
@@ -30,6 +31,8 @@ export function AppSidebar() {
     email: data?.user?.email,
     image: data?.user?.image,
   };
+
+  const { state } = useSidebar();
 
   const navItems = [
     {
@@ -57,8 +60,7 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="text-sidebar-foreground">
       <SidebarHeader>
-        <div className="flex flex-col items-end justify-center w-full">
-          <SidebarTrigger className="mb-2" />
+        <div className="flex items-center justify-between w-full">
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton size="lg" asChild>
@@ -71,6 +73,7 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
+          {state === "expanded" && <SidebarTrigger />}
         </div>
       </SidebarHeader>
 
@@ -97,6 +100,16 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      {state === "collapsed" && (
+        <SidebarMenu className="mt-auto w-full flex justify-center items-center mb-2">
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <SidebarTrigger />
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      )}
 
       <SidebarFooter className="border-t border-sidebar-border">
         <SidebarMenu>

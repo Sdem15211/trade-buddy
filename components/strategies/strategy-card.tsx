@@ -74,7 +74,11 @@ export function StrategyCard({ strategy }: StrategyCardProps) {
 
   return (
     <Card className="h-full transition-all hover:shadow-md relative group">
-      <Link href={`/strategies/${strategySlug}`} className="block h-full">
+      <Link
+        prefetch={true}
+        href={`/strategies/${strategySlug}`}
+        className="block h-full"
+      >
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="line-clamp-1">{name}</CardTitle>

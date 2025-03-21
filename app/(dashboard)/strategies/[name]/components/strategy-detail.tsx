@@ -18,6 +18,8 @@ import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tabs } from "@/components/ui/tabs";
 import { useState } from "react";
 import Link from "next/link";
+import LiveTradingDashboard from "./live-trading-dashboard";
+import BacktestTradingDashboard from "./backtest-trading-dashboard";
 
 export default function StrategyDetail({ strategy }: { strategy: Strategy }) {
   const [activeTab, setActiveTab] = useState("live");
@@ -69,27 +71,12 @@ export default function StrategyDetail({ strategy }: { strategy: Strategy }) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div className="h-full flex-1 bg-card rounded-lg border shadow-sm p-8">
-        {activeTab === "live" ? (
-          <div className="text-center">
-            <h2 className="text-2xl font-semibold tracking-tight mb-3">
-              Live Trading Dashboard
-            </h2>
-            <p className="text-muted-foreground text-sm">
-              The live trading dashboard will be implemented here.
-            </p>
-          </div>
-        ) : (
-          <div className="text-center">
-            <h2 className="text-2xl font-semibold tracking-tight mb-3">
-              Backtesting Dashboard
-            </h2>
-            <p className="text-muted-foreground text-sm">
-              The backtesting dashboard will be implemented here.
-            </p>
-          </div>
-        )}
-      </div>
+
+      {activeTab === "live" ? (
+        <LiveTradingDashboard />
+      ) : (
+        <BacktestTradingDashboard />
+      )}
     </div>
   );
 }

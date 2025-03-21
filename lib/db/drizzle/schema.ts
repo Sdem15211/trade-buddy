@@ -157,11 +157,19 @@ export const trade = pgTable(
 // Relations
 export const strategyRelations = relations(strategy, ({ many }) => ({
   customFields: many(customField),
+  trades: many(trade),
 }));
 
 export const customFieldRelations = relations(customField, ({ one }) => ({
   strategy: one(strategy, {
     fields: [customField.strategyId],
+    references: [strategy.id],
+  }),
+}));
+
+export const tradeRelations = relations(trade, ({ one }) => ({
+  strategy: one(strategy, {
+    fields: [trade.strategyId],
     references: [strategy.id],
   }),
 }));
