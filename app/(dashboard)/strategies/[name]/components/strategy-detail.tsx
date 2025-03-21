@@ -73,9 +73,9 @@ export default function StrategyDetail({ strategy }: { strategy: Strategy }) {
       </div>
 
       {activeTab === "live" ? (
-        <LiveTradingDashboard />
+        <LiveTradingDashboard strategy={strategy} />
       ) : (
-        <BacktestTradingDashboard />
+        <BacktestTradingDashboard strategy={strategy} />
       )}
     </div>
   );

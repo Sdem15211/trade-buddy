@@ -72,7 +72,7 @@ The `customValues` field stores JSON data representing the values for the custom
 #### 2.2 Trade Logging Sheet
 
 1. **Create Sheet Component**:
-   - Create a Shadcn sheet component for logging trades
+   - Use the shadcn sheet component
    - Implement open/close functionality
    - Add form within the sheet
    - Pass the current active tab (live or backtest) to the form to automatically set trade type

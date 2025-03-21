@@ -27,7 +27,13 @@ const createTradeSchema = z.object({
     })
     .optional()
     .nullable(),
-  profitLoss: z.coerce.number().optional().nullable(),
+  profitLoss: z.coerce
+    .number()
+    .refine((val) => val === null || val === undefined || !isNaN(val), {
+      message: "Profit/Loss must be a valid number",
+    })
+    .optional()
+    .nullable(),
   notes: z.string().optional(),
   isBacktest: z.boolean().default(false),
   customValues: z.record(z.string(), z.any()).optional(),
@@ -87,8 +93,14 @@ export async function createTrade(
 
   // Convert string dates to Date objects if they exist
   const dateOpened = rawData.dateOpened ? rawData.dateOpened.toString() : null;
-
   const dateClosed = rawData.dateClosed ? rawData.dateClosed.toString() : null;
+
+  // Parse profit/loss as a decimal number
+  let profitLossValue = null;
+  if (rawData.profitLoss) {
+    const profitLossString = rawData.profitLoss.toString().trim();
+    profitLossValue = profitLossString ? parseFloat(profitLossString) : null;
+  }
 
   const dataToValidate: CreateTradeInput = {
     strategyId: rawData.strategyId as string,
@@ -98,7 +110,7 @@ export async function createTrade(
     dateClosed,
     direction: rawData.direction as "long" | "short",
     result: (rawData.result as "win" | "break_even" | "loss") || null,
-    profitLoss: rawData.profitLoss ? Number(rawData.profitLoss) : null,
+    profitLoss: profitLossValue,
     notes: (rawData.notes as string) || "",
     isBacktest: rawData.isBacktest === "true",
     customValues: customValuesData,
@@ -152,7 +164,11 @@ export async function createTrade(
           : null,
         direction: validatedData.direction,
         result: validatedData.result,
-        profitLoss: validatedData.profitLoss,
+        profitLoss:
+          validatedData.profitLoss !== null &&
+          validatedData.profitLoss !== undefined
+            ? validatedData.profitLoss.toString()
+            : null,
         notes: validatedData.notes || "",
         isBacktest: validatedData.isBacktest,
         customValues: validatedData.customValues || {},
@@ -212,8 +228,14 @@ export async function updateTrade(
 
   // Convert string dates to Date objects if they exist
   const dateOpened = rawData.dateOpened ? rawData.dateOpened.toString() : null;
-
   const dateClosed = rawData.dateClosed ? rawData.dateClosed.toString() : null;
+
+  // Parse profit/loss as a decimal number
+  let profitLossValue = null;
+  if (rawData.profitLoss) {
+    const profitLossString = rawData.profitLoss.toString().trim();
+    profitLossValue = profitLossString ? parseFloat(profitLossString) : null;
+  }
 
   const dataToValidate: UpdateTradeInput = {
     id: rawData.id as string,
@@ -224,7 +246,7 @@ export async function updateTrade(
     dateClosed,
     direction: rawData.direction as "long" | "short",
     result: (rawData.result as "win" | "break_even" | "loss") || null,
-    profitLoss: rawData.profitLoss ? Number(rawData.profitLoss) : null,
+    profitLoss: profitLossValue,
     notes: (rawData.notes as string) || "",
     isBacktest: rawData.isBacktest === "true",
     customValues: customValuesData,
@@ -292,7 +314,11 @@ export async function updateTrade(
           : null,
         direction: validatedData.direction,
         result: validatedData.result,
-        profitLoss: validatedData.profitLoss,
+        profitLoss:
+          validatedData.profitLoss !== null &&
+          validatedData.profitLoss !== undefined
+            ? validatedData.profitLoss.toString()
+            : null,
         notes: validatedData.notes || "",
         customValues: validatedData.customValues || {},
         updatedAt: new Date(),

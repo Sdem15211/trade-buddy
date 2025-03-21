@@ -1,0 +1,1 @@
+ALTER TABLE "trade" ALTER COLUMN "profit_loss" SET DATA TYPE numeric(10, 2);

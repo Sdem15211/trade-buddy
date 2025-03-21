@@ -57,6 +57,13 @@
       "when": 1742392149224,
       "tag": "0010_striped_paibok",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1742555184668,
+      "tag": "0011_solid_inertia",
+      "breakpoints": true
     }
   ]
 }

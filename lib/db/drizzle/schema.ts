@@ -5,10 +5,10 @@ import {
   boolean,
   uuid,
   json,
-  integer,
   index,
   pgEnum,
   uniqueIndex,
+  decimal,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -141,7 +141,7 @@ export const trade = pgTable(
     dateClosed: timestamp("date_closed"), // null if still open
     direction: directionEnum("direction").notNull(),
     result: tradeResultEnum("result"), // null if not closed
-    profitLoss: integer("profit_loss"), // Can be positive or negative
+    profitLoss: decimal("profit_loss", { precision: 10, scale: 2 }), // precision: total digits, scale: decimal places
     notes: text("notes"),
     isBacktest: boolean("is_backtest").notNull().default(false),
     customValues: json("custom_values").notNull().$type<Record<string, any>>(), // Values for custom fields

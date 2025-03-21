@@ -1,8 +1,16 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import LogTradeSheet from "@/components/trades/log-trade-sheet";
+import { Strategy } from "@/lib/db/drizzle/schema";
 
-export default function BacktestTradingDashboard() {
+interface BacktestTradingDashboardProps {
+  strategy: Strategy;
+}
+
+export default function BacktestTradingDashboard({
+  strategy,
+}: BacktestTradingDashboardProps) {
   return (
     <div className="space-y-6">
       {/* Metric Cards */}
@@ -14,7 +22,7 @@ export default function BacktestTradingDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-emerald-500">57%</div>
+            <div className="text-2xl font-bold text-emerald-500">47%</div>
           </CardContent>
         </Card>
 
@@ -25,7 +33,7 @@ export default function BacktestTradingDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-emerald-500">81.40%</div>
+            <div className="text-2xl font-bold text-emerald-500">61.40%</div>
           </CardContent>
         </Card>
 
@@ -36,7 +44,7 @@ export default function BacktestTradingDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-emerald-500">3.85%</div>
+            <div className="text-2xl font-bold text-emerald-500">2.85%</div>
           </CardContent>
         </Card>
       </div>
@@ -66,8 +74,9 @@ export default function BacktestTradingDashboard() {
 
       {/* Trades Table */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Recent Trades</CardTitle>
+          <LogTradeSheet strategy={strategy} isBacktest={true} />
         </CardHeader>
         <CardContent className="h-[300px] flex items-center justify-center bg-muted/20">
           <p className="text-muted-foreground">Trade Table Placeholder</p>

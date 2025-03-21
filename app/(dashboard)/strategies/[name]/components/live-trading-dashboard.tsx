@@ -1,8 +1,16 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import LogTradeSheet from "@/components/trades/log-trade-sheet";
+import { Strategy } from "@/lib/db/drizzle/schema";
 
-export default function LiveTradingDashboard() {
+interface LiveTradingDashboardProps {
+  strategy: Strategy;
+}
+
+export default function LiveTradingDashboard({
+  strategy,
+}: LiveTradingDashboardProps) {
   return (
     <div className="space-y-6">
       {/* Metric Cards */}
@@ -66,8 +74,9 @@ export default function LiveTradingDashboard() {
 
       {/* Trades Table */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Recent Trades</CardTitle>
+          <LogTradeSheet strategy={strategy} isBacktest={false} />
         </CardHeader>
         <CardContent className="h-[300px] flex items-center justify-center bg-muted/20">
           <p className="text-muted-foreground">Trade Table Placeholder</p>

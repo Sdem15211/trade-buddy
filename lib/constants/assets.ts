@@ -26,6 +26,118 @@ export const forexPairs: AssetOption[] = [
     value: "EUR/USD",
     label: "EUR/USD",
   },
+  {
+    value: "EUR/AUD",
+    label: "EUR/AUD",
+  },
+  {
+    value: "EUR/GBP",
+    label: "EUR/GBP",
+  },
+  {
+    value: "EUR/JPY",
+    label: "EUR/JPY",
+  },
+  {
+    value: "EUR/CHF",
+    label: "EUR/CHF",
+  },
+  {
+    value: "EUR/NZD",
+    label: "EUR/NZD",
+  },
+  {
+    value: "USD/CAD",
+    label: "USD/CAD",
+  },
+  {
+    value: "USD/CHF",
+    label: "USD/CHF",
+  },
+  {
+    value: "USD/JPY",
+    label: "USD/JPY",
+  },
+  {
+    value: "CAD/JPY",
+    label: "CAD/JPY",
+  },
+  {
+    value: "CAD/CHF",
+    label: "CAD/CHF",
+  },
+  {
+    value: "CHF/JPY",
+    label: "CHF/JPY",
+  },
+  {
+    value: "GBP/JPY",
+    label: "GBP/JPY",
+  },
+  {
+    value: "GBP/CHF",
+    label: "GBP/CHF",
+  },
+  {
+    value: "GBP/AUD",
+    label: "GBP/AUD",
+  },
+  {
+    value: "GBP/NZD",
+    label: "GBP/NZD",
+  },
+  {
+    value: "GBP/USD",
+    label: "GBP/USD",
+  },
+  {
+    value: "GBP/CAD",
+    label: "GBP/CAD",
+  },
+  {
+    value: "AUD/CAD",
+    label: "AUD/CAD",
+  },
+  {
+    value: "AUD/CHF",
+    label: "AUD/CHF",
+  },
+  {
+    value: "AUD/JPY",
+    label: "AUD/JPY",
+  },
+  {
+    value: "AUD/NZD",
+    label: "AUD/NZD",
+  },
+  {
+    value: "AUD/USD",
+    label: "AUD/USD",
+  },
+  {
+    value: "NZD/JPY",
+    label: "NZD/JPY",
+  },
+  {
+    value: "NZD/USD",
+    label: "NZD/USD",
+  },
+  {
+    value: "NZD/CAD",
+    label: "NZD/CAD",
+  },
+  {
+    value: "NZD/CHF",
+    label: "NZD/CHF",
+  },
+  {
+    value: "XAU/USD",
+    label: "XAU/USD",
+  },
+  {
+    value: "XAG/USD",
+    label: "XAG/USD",
+  },
 ];
 
 /**
