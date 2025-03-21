@@ -18,7 +18,6 @@ export default async function StrategiesPage() {
     redirect("/");
   }
 
-  // Fetch user's strategies
   const strategies = await db.query.strategy.findMany({
     ...strategyConfig,
     where: eq(strategy.userId, session.user.id),

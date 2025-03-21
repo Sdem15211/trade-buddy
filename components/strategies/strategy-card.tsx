@@ -55,7 +55,7 @@ export function StrategyCard({ strategy }: StrategyCardProps) {
   const handleDelete = async () => {
     try {
       setIsDeleting(true);
-      await deleteStrategy(strategy.id);
+      await deleteStrategy(id);
       toast.success("Strategy deleted successfully");
       router.refresh();
     } catch (error) {

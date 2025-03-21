@@ -59,7 +59,7 @@ export default function TradeForm({
   const [customValues, setCustomValues] = useState<Record<string, any>>({});
   const [tradeStatus, setTradeStatus] = useState<
     "order_placed" | "open" | "closed"
-  >("open");
+  >();
 
   // Date state
   const [dateOpened, setDateOpened] = useState<Date | undefined>(
@@ -316,7 +316,7 @@ export default function TradeForm({
               <Input
                 type="text"
                 inputMode="decimal"
-                pattern="[0-9]*[.]?[0-9]+"
+                pattern="-?[0-9]*[.]?[0-9]+"
                 id={profitLossId}
                 name="profitLoss"
                 placeholder="0.00"

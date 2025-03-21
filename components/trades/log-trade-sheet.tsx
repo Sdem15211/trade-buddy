@@ -19,13 +19,22 @@ import TradeForm from "./trade-form";
 interface LogTradeSheetProps {
   strategy: Strategy;
   isBacktest?: boolean;
+  onSuccess?: () => void;
 }
 
 export default function LogTradeSheet({
   strategy,
   isBacktest = false,
+  onSuccess,
 }: LogTradeSheetProps) {
   const [open, setOpen] = useState(false);
+
+  const handleSuccess = () => {
+    setOpen(false);
+    if (onSuccess) {
+      onSuccess();
+    }
+  };
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -71,7 +80,7 @@ export default function LogTradeSheet({
             <TradeForm
               strategy={strategy}
               isBacktest={isBacktest}
-              onSuccess={() => setOpen(false)}
+              onSuccess={handleSuccess}
             />
           </div>
         </div>

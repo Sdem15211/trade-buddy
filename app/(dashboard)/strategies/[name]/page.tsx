@@ -1,7 +1,4 @@
-import {
-  getStrategyByName,
-  getRecentTradesByStrategyId,
-} from "@/lib/db/queries/strategies";
+import { getStrategyByName } from "@/lib/db/queries/strategies";
 import { slugToReadable } from "@/lib/utils";
 import { notFound } from "next/navigation";
 import StrategyDetail from "./components/strategy-detail";
