@@ -15,7 +15,7 @@ import {
   SidebarRail,
   SidebarTrigger,
   useSidebar,
-} from "./ui/sidebar";
+} from "../ui/sidebar";
 import { SidebarUserProfile } from "./sidebar-user-profile";
 import Link from "next/link";
 import { usePathname } from "next/navigation";

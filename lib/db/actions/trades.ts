@@ -116,15 +116,47 @@ export async function createTrade(
     customValues: customValuesData,
   };
 
+  // Add validation for profit/loss based on result
+  const errors: Record<string, string[]> = {};
+  if (
+    dataToValidate.result === "win" &&
+    dataToValidate.profitLoss !== null &&
+    dataToValidate.profitLoss !== undefined &&
+    dataToValidate.profitLoss <= 0
+  ) {
+    errors.profitLoss = ["Profit must be positive for wins"];
+  }
+
+  if (
+    dataToValidate.result === "loss" &&
+    dataToValidate.profitLoss !== null &&
+    dataToValidate.profitLoss !== undefined &&
+    dataToValidate.profitLoss >= 0
+  ) {
+    errors.profitLoss = ["Loss must be negative"];
+  }
+
+  // Run schema validation
   const validationResult = createTradeSchema.safeParse(dataToValidate);
 
-  if (!validationResult.success) {
-    const errors = validationResult.error.format();
-    console.error("Validation errors:", errors);
+  if (!validationResult.success || Object.keys(errors).length > 0) {
+    let validationErrors = {};
+
+    if (!validationResult.success) {
+      validationErrors = validationResult.error.flatten().fieldErrors;
+    }
+
+    // Merge custom errors with schema validation errors
+    const mergedErrors = {
+      ...validationErrors,
+      ...errors,
+    };
+
+    console.error("Validation errors:", mergedErrors);
     return {
       success: false,
       message: "Please fix errors in the form",
-      errors: validationResult.error.flatten().fieldErrors,
+      errors: mergedErrors,
       data: dataToValidate,
     };
   }
@@ -190,7 +222,7 @@ export async function createTrade(
     console.error("Error creating trade:", error);
     return {
       success: false,
-      message: "Failed to log trade. Please try again.",
+      message: "Failed to create trade. Please try again.",
     };
   }
 }
@@ -252,15 +284,47 @@ export async function updateTrade(
     customValues: customValuesData,
   };
 
+  // Add validation for profit/loss based on result
+  const errors: Record<string, string[]> = {};
+  if (
+    dataToValidate.result === "win" &&
+    dataToValidate.profitLoss !== null &&
+    dataToValidate.profitLoss !== undefined &&
+    dataToValidate.profitLoss <= 0
+  ) {
+    errors.profitLoss = ["Profit must be positive for wins"];
+  }
+
+  if (
+    dataToValidate.result === "loss" &&
+    dataToValidate.profitLoss !== null &&
+    dataToValidate.profitLoss !== undefined &&
+    dataToValidate.profitLoss >= 0
+  ) {
+    errors.profitLoss = ["Loss must be negative"];
+  }
+
+  // Run schema validation
   const validationResult = updateTradeSchema.safeParse(dataToValidate);
 
-  if (!validationResult.success) {
-    const errors = validationResult.error.format();
-    console.error("Validation errors:", errors);
+  if (!validationResult.success || Object.keys(errors).length > 0) {
+    let validationErrors = {};
+
+    if (!validationResult.success) {
+      validationErrors = validationResult.error.flatten().fieldErrors;
+    }
+
+    // Merge custom errors with schema validation errors
+    const mergedErrors = {
+      ...validationErrors,
+      ...errors,
+    };
+
+    console.error("Validation errors:", mergedErrors);
     return {
       success: false,
       message: "Please fix errors in the form",
-      errors: validationResult.error.flatten().fieldErrors,
+      errors: mergedErrors,
       data: dataToValidate,
     };
   }

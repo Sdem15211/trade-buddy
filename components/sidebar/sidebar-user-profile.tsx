@@ -1,8 +1,8 @@
 "use client";
 
 import { signOut } from "@/lib/auth/auth-client";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Button } from "./ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Button } from "../ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,8 +11,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
-import { SidebarMenuItem, SidebarMenuButton } from "./ui/sidebar";
+} from "../ui/dropdown-menu";
+import { SidebarMenuItem, SidebarMenuButton } from "../ui/sidebar";
 import {
   BadgeCheck,
   CreditCard,

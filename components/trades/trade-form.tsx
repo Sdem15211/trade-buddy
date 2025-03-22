@@ -60,6 +60,10 @@ export default function TradeForm({
   const [tradeStatus, setTradeStatus] = useState<
     "order_placed" | "open" | "closed"
   >();
+  // Add state for selected result
+  const [selectedResult, setSelectedResult] = useState<
+    "win" | "loss" | "break_even" | null
+  >(null);
 
   // Date state
   const [dateOpened, setDateOpened] = useState<Date | undefined>(
@@ -295,7 +299,12 @@ export default function TradeForm({
             {/* Result */}
             <div className="space-y-2">
               <Label htmlFor={resultId}>Result</Label>
-              <Select name="result">
+              <Select
+                name="result"
+                onValueChange={(value) =>
+                  setSelectedResult(value as "win" | "loss" | "break_even")
+                }
+              >
                 <SelectTrigger id={resultId} className="w-full">
                   <SelectValue placeholder="Select result" />
                 </SelectTrigger>
@@ -316,15 +325,71 @@ export default function TradeForm({
               <Input
                 type="text"
                 inputMode="decimal"
-                pattern="-?[0-9]*[.]?[0-9]+"
+                pattern={
+                  selectedResult === "win"
+                    ? "[0-9]*[.]?[0-9]+"
+                    : selectedResult === "loss"
+                    ? "-[0-9]*[.]?[0-9]+"
+                    : "-?[0-9]*[.]?[0-9]+"
+                }
                 id={profitLossId}
                 name="profitLoss"
-                placeholder="0.00"
+                placeholder={
+                  selectedResult === "win"
+                    ? "0.00"
+                    : selectedResult === "loss"
+                    ? "-0.00"
+                    : "0.00"
+                }
+                min={
+                  selectedResult === "win"
+                    ? "0"
+                    : selectedResult === "loss"
+                    ? undefined
+                    : undefined
+                }
+                max={
+                  selectedResult === "loss"
+                    ? "0"
+                    : selectedResult === "win"
+                    ? undefined
+                    : undefined
+                }
+                onChange={(e) => {
+                  // Enforce positive values for wins
+                  if (
+                    selectedResult === "win" &&
+                    parseFloat(e.target.value) < 0
+                  ) {
+                    e.target.value = Math.abs(
+                      parseFloat(e.target.value)
+                    ).toString();
+                  }
+                  // Enforce negative values for losses
+                  if (
+                    selectedResult === "loss" &&
+                    parseFloat(e.target.value) > 0
+                  ) {
+                    e.target.value = (-Math.abs(
+                      parseFloat(e.target.value)
+                    )).toString();
+                  }
+                }}
                 className={cn(
                   "w-full",
                   state?.errors?.profitLoss ? "border-red-500" : ""
                 )}
               />
+              {selectedResult === "win" && (
+                <p className="text-xs text-muted-foreground">
+                  Value must be positive for wins
+                </p>
+              )}
+              {selectedResult === "loss" && (
+                <p className="text-xs text-muted-foreground">
+                  Value must be negative for losses
+                </p>
+              )}
               {state?.errors?.profitLoss && (
                 <p className="text-sm text-red-500">
                   {state.errors.profitLoss[0]}

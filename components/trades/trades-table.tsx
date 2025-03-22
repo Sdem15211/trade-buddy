@@ -23,24 +23,19 @@ import {
   ColumnDef,
   ColumnFiltersState,
   PaginationState,
-  SortingState,
   VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
-  getSortedRowModel,
   useReactTable,
   Row,
 } from "@tanstack/react-table";
 import {
-  ChevronDownIcon,
   ChevronFirstIcon,
   ChevronLastIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  ChevronUpIcon,
-  CircleXIcon,
   EllipsisIcon,
 } from "lucide-react";
 import { Trade, Strategy } from "@/lib/db/drizzle/schema";
@@ -54,6 +49,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import LogTradeSheet from "@/components/trades/log-trade-sheet";
+import { toast } from "sonner";
+import { deleteTrade } from "@/lib/db/actions/trades";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface TradesTableProps {
   strategy: Strategy;
@@ -68,12 +75,6 @@ export default function TradesTable({
 
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [sorting, setSorting] = useState<SortingState>([
-    {
-      id: "createdAt",
-      desc: true,
-    },
-  ]);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -112,12 +113,8 @@ export default function TradesTable({
 
   // Define fetch function for React Query
   const fetchTrades = async () => {
-    const sortField = sorting.length > 0 ? sorting[0].id : "createdAt";
-    const sortDirection =
-      sorting.length > 0 ? (sorting[0].desc ? "desc" : "asc") : "desc";
-
     const response = await fetch(
-      `/api/trades?strategyId=${strategy.id}&isBacktest=${isBacktest}&pageIndex=${pagination.pageIndex}&pageSize=${pagination.pageSize}&sortField=${sortField}&sortDirection=${sortDirection}`
+      `/api/trades?strategyId=${strategy.id}&isBacktest=${isBacktest}&pageIndex=${pagination.pageIndex}&pageSize=${pagination.pageSize}&sortField=dateOpened&sortDirection=desc`
     );
 
     if (!response.ok) {
@@ -135,7 +132,6 @@ export default function TradesTable({
       isBacktest,
       pagination.pageIndex,
       pagination.pageSize,
-      sorting,
     ],
     queryFn: fetchTrades,
   });
@@ -275,7 +271,7 @@ export default function TradesTable({
               </div>
             );
           }
-          return <div className="text-sm">{value}</div>;
+          return <div className="text-sm tracking-tight">{value}</div>;
         },
       }));
     }, [trades]),
@@ -291,8 +287,6 @@ export default function TradesTable({
     data: trades,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    onSortingChange: setSorting,
     getFilteredRowModel: getFilteredRowModel(),
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
@@ -300,10 +294,8 @@ export default function TradesTable({
     onPaginationChange: setPagination,
     manualPagination: true,
     manualSorting: true,
-    enableMultiSort: false,
     pageCount,
     state: {
-      sorting,
       columnFilters,
       columnVisibility,
       pagination,
@@ -348,40 +340,13 @@ export default function TradesTable({
                   >
                     {headerGroup.headers.map((header) => (
                       <TableHead key={header.id}>
-                        {header.isPlaceholder ? null : header.column.getCanSort() ? (
-                          <div
-                            className={cn(
-                              header.column.getCanSort() &&
-                                "flex cursor-pointer items-center justify-between gap-2 select-none"
-                            )}
-                            onClick={header.column.getToggleSortingHandler()}
-                          >
+                        {header.isPlaceholder ? null : (
+                          <div className="flex items-center justify-between gap-2">
                             {flexRender(
                               header.column.columnDef.header,
                               header.getContext()
                             )}
-                            {{
-                              asc: (
-                                <ChevronUpIcon
-                                  className="shrink-0 opacity-60"
-                                  size={16}
-                                  aria-hidden="true"
-                                />
-                              ),
-                              desc: (
-                                <ChevronDownIcon
-                                  className="shrink-0 opacity-60"
-                                  size={16}
-                                  aria-hidden="true"
-                                />
-                              ),
-                            }[header.column.getIsSorted() as string] ?? null}
                           </div>
-                        ) : (
-                          flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )
                         )}
                       </TableHead>
                     ))}
@@ -481,22 +446,76 @@ export default function TradesTable({
 }
 
 function TradeActions({ trade }: { trade: Trade }) {
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const queryClient = useQueryClient();
+
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true);
+      const result = await deleteTrade(trade.id, trade.strategyId);
+
+      if (result.success) {
+        toast.success(result.message);
+        // Invalidate the trades query to trigger a refetch
+        queryClient.invalidateQueries({
+          queryKey: ["trades", trade.strategyId, trade.isBacktest],
+        });
+      } else {
+        toast.error(result.message || "Failed to delete trade");
+      }
+    } catch (error) {
+      console.error("Error deleting trade:", error);
+      toast.error("An unexpected error occurred");
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+    }
+  };
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button size="icon" variant="ghost">
-          <EllipsisIcon size={16} aria-hidden="true" />
-          <span className="sr-only">Open menu</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem>Edit trade</DropdownMenuItem>
-        <DropdownMenuItem>View details</DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem className="text-destructive focus:text-destructive">
-          Delete trade
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button size="icon" variant="ghost">
+            <EllipsisIcon size={16} aria-hidden="true" />
+            <span className="sr-only">Open menu</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem>Edit trade</DropdownMenuItem>
+          <DropdownMenuItem>View details</DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            className="text-destructive focus:text-destructive"
+            onClick={() => setShowDeleteDialog(true)}
+          >
+            Delete trade
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Trade</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this trade? This action cannot be
+              undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
