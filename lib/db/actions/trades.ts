@@ -6,7 +6,7 @@ import { db } from "../db";
 import { auth } from "../../auth/auth";
 import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
-import { trade, strategy } from "../drizzle/schema";
+import { trade } from "../drizzle/schema";
 import { ActionResponse } from "@/lib/types/strategies";
 import { createSlug } from "@/lib/utils";
 
@@ -67,7 +67,6 @@ export async function createTrade(
     };
   }
 
-  // Check if FormData is empty (used for resetting the form state)
   if (formData.entries().next().done) {
     return {
       success: false,

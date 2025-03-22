@@ -141,7 +141,7 @@ async function seedArcherFullTrades() {
       result,
       profitLoss,
       notes: `Trade ${i + 1} for Archer Full strategy testing.`,
-      isBacktest: Math.random() > 0.7, // 30% are backtests
+      isBacktest: false,
       customValues,
       createdAt: new Date(),
       updatedAt: new Date(),

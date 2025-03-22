@@ -12,7 +12,7 @@ import {
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
-import { X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { Strategy } from "@/lib/db/drizzle/schema";
 import TradeForm from "./trade-form";
 
@@ -39,7 +39,10 @@ export default function LogTradeSheet({
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button>Log Trade</Button>
+        <Button>
+          Log Trade
+          <Plus className="w-4 h-4 ml-2" />
+        </Button>
       </SheetTrigger>
       <SheetContent className="sm:max-w-md overflow-hidden flex flex-col">
         <div className="flex justify-between items-center pr-8">

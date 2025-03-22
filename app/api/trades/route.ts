@@ -10,8 +10,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const strategyId = searchParams.get("strategyId");
     const isBacktest = searchParams.get("isBacktest") === "true";
-    const pageIndex = parseInt(searchParams.get("pageIndex") || "0");
-    const pageSize = parseInt(searchParams.get("pageSize") || "10");
     const sortField = searchParams.get("sortField") || "createdAt";
     const sortDirection = searchParams.get("sortDirection") || "desc";
 
@@ -61,13 +59,10 @@ export async function GET(request: NextRequest) {
           ? desc(fields[sortField as keyof typeof fields])
           : asc(fields[sortField as keyof typeof fields]),
       ],
-      offset: pageIndex * pageSize,
-      limit: pageSize,
     });
 
     return NextResponse.json({
       trades,
-      pageCount: Math.ceil(totalCount / pageSize),
       totalCount,
     });
   } catch (error) {

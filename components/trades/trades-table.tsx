@@ -37,6 +37,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   EllipsisIcon,
+  Loader2,
 } from "lucide-react";
 import { Trade, Strategy } from "@/lib/db/drizzle/schema";
 import { format } from "date-fns";
@@ -114,7 +115,7 @@ export default function TradesTable({
   // Define fetch function for React Query
   const fetchTrades = async () => {
     const response = await fetch(
-      `/api/trades?strategyId=${strategy.id}&isBacktest=${isBacktest}&pageIndex=${pagination.pageIndex}&pageSize=${pagination.pageSize}&sortField=dateOpened&sortDirection=desc`
+      `/api/trades?strategyId=${strategy.id}&isBacktest=${isBacktest}&sortField=dateOpened&sortDirection=desc`
     );
 
     if (!response.ok) {
@@ -126,20 +127,13 @@ export default function TradesTable({
 
   // Use React Query to fetch trades
   const { data, isLoading, isError } = useQuery({
-    queryKey: [
-      "trades",
-      strategy.id,
-      isBacktest,
-      pagination.pageIndex,
-      pagination.pageSize,
-    ],
+    queryKey: ["trades", strategy.id, isBacktest],
     queryFn: fetchTrades,
   });
 
-  const { trades, pageCount } = useMemo(
+  const { trades } = useMemo(
     () => ({
       trades: data?.trades || [],
-      pageCount: data?.pageCount || 0,
     }),
     [data]
   );
@@ -288,18 +282,16 @@ export default function TradesTable({
     columns,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    getPaginationRowModel: getPaginationRowModel(),
-    onPaginationChange: setPagination,
-    manualPagination: true,
-    manualSorting: true,
-    pageCount,
+    manualPagination: false,
     state: {
       columnFilters,
       columnVisibility,
       pagination,
     },
+    onPaginationChange: setPagination,
   });
 
   return (
@@ -321,6 +313,7 @@ export default function TradesTable({
         {/* Table */}
         {isLoading ? (
           <div className="h-[400px] w-full flex items-center justify-center">
+            <Loader2 className="w-4 h-4 animate-spin" />
             <div className="text-muted-foreground">Loading trades...</div>
           </div>
         ) : isError ? (
