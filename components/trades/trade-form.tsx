@@ -3,8 +3,12 @@
 import * as React from "react";
 import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { createTrade, CreateTradeInput } from "@/lib/db/actions/trades";
-import { Strategy, CustomField } from "@/lib/db/drizzle/schema";
+import {
+  createTrade,
+  CreateTradeInput,
+  updateTrade,
+} from "@/lib/db/actions/trades";
+import { Strategy, CustomField, Trade } from "@/lib/db/drizzle/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,6 +42,7 @@ interface TradeFormProps {
   strategy: ExtendedStrategy;
   isBacktest?: boolean;
   onSuccess?: () => void;
+  trade?: Trade;
 }
 
 const initialState: ActionResponse = {
@@ -49,28 +54,61 @@ export default function TradeForm({
   strategy,
   isBacktest = false,
   onSuccess,
+  trade,
 }: TradeFormProps) {
+  const isEditMode = !!trade;
+
   const [state, formAction, isPending] = useActionState(
-    createTrade,
+    isEditMode ? updateTrade : createTrade,
     initialState
   );
 
-  // Keep track of custom field values as JSON
-  const [customValues, setCustomValues] = useState<Record<string, any>>({});
+  // Parse custom values more reliably
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const parseCustomValues = () => {
+    if (!trade?.customValues) return {};
+
+    try {
+      if (typeof trade.customValues === "string") {
+        return JSON.parse(trade.customValues);
+      } else {
+        return trade.customValues;
+      }
+    } catch (error) {
+      console.error("Error parsing custom values:", error);
+      return {};
+    }
+  };
+
+  // Initialize custom values with more reliable parsing
+  const [customValues, setCustomValues] = useState<Record<string, any>>(
+    isEditMode ? parseCustomValues() : {}
+  );
+
   const [tradeStatus, setTradeStatus] = useState<
     "order_placed" | "open" | "closed"
-  >();
+  >((trade?.status as any) || undefined);
+
   // Add state for selected result
   const [selectedResult, setSelectedResult] = useState<
     "win" | "loss" | "break_even" | null
-  >(null);
+  >(trade?.result || null);
 
   // Date state
   const [dateOpened, setDateOpened] = useState<Date | undefined>(
-    tradeStatus !== "order_placed" ? new Date() : undefined
+    trade?.dateOpened
+      ? new Date(trade.dateOpened)
+      : tradeStatus !== "order_placed"
+      ? new Date()
+      : undefined
   );
+
   const [dateClosed, setDateClosed] = useState<Date | undefined>(
-    tradeStatus === "closed" ? new Date() : undefined
+    trade?.dateClosed
+      ? new Date(trade.dateClosed)
+      : tradeStatus === "closed"
+      ? new Date()
+      : undefined
   );
 
   const assetOptions = getAssetsByInstrument(strategy.instrument);
@@ -105,6 +143,14 @@ export default function TradeForm({
     }
   }, [tradeStatus, dateOpened]);
 
+  // Keep custom field data in sync with the trade prop
+  useEffect(() => {
+    if (isEditMode && trade?.customValues) {
+      const parsedValues = parseCustomValues();
+      setCustomValues(parsedValues);
+    }
+  }, [isEditMode, parseCustomValues, trade?.customValues]);
+
   // Handle custom field changes
   const handleCustomFieldChange = (fieldId: string, value: any) => {
     setCustomValues((prev) => ({
@@ -124,9 +170,18 @@ export default function TradeForm({
       formData.append("dateClosed", dateClosed.toISOString().split("T")[0]);
     }
 
-    formData.append("customValues", JSON.stringify(customValues));
+    // Ensure custom values are stringified properly
+    const customValuesString = JSON.stringify(customValues);
+    formData.append("customValues", customValuesString);
+
     formData.append("isBacktest", isBacktest.toString());
     formData.append("strategyId", strategy.id);
+
+    // For edit mode, add trade id
+    if (isEditMode && trade) {
+      formData.append("id", trade.id);
+    }
+
     return formAction(formData);
   };
 
@@ -138,7 +193,7 @@ export default function TradeForm({
           <Label htmlFor={statusId}>Status</Label>
           <Select
             name="status"
-            defaultValue="open"
+            defaultValue={trade?.status || "open"}
             onValueChange={(value) => setTradeStatus(value as any)}
             required
           >
@@ -159,7 +214,7 @@ export default function TradeForm({
         {/* Asset */}
         <div className="space-y-2">
           <Label htmlFor={assetId}>Asset</Label>
-          <Select name="asset" required>
+          <Select name="asset" defaultValue={trade?.asset} required>
             <SelectTrigger id={assetId} className="w-full">
               <SelectValue placeholder="Select asset" />
             </SelectTrigger>
@@ -181,7 +236,7 @@ export default function TradeForm({
           <Label>Direction</Label>
           <RadioGroup
             name="direction"
-            defaultValue="long"
+            defaultValue={trade?.direction || "long"}
             className="grid grid-cols-2 gap-2"
           >
             <div className="border-input has-data-[state=checked]:border-ring relative flex flex-col gap-4 rounded-md border p-4 shadow-xs outline-none">
@@ -301,6 +356,7 @@ export default function TradeForm({
               <Label htmlFor={resultId}>Result</Label>
               <Select
                 name="result"
+                defaultValue={trade?.result || ""}
                 onValueChange={(value) =>
                   setSelectedResult(value as "win" | "loss" | "break_even")
                 }
@@ -334,6 +390,7 @@ export default function TradeForm({
                 }
                 id={profitLossId}
                 name="profitLoss"
+                defaultValue={trade?.profitLoss?.toString() || ""}
                 placeholder={
                   selectedResult === "win"
                     ? "0.00"
@@ -431,6 +488,7 @@ export default function TradeForm({
                   ) : field.type === "select" ? (
                     <Select
                       name={`custom-${field.name}`}
+                      defaultValue={customValues[field.name] || ""}
                       onValueChange={(value) =>
                         handleCustomFieldChange(field.name, value)
                       }
@@ -491,6 +549,7 @@ export default function TradeForm({
           <Textarea
             id={notesId}
             name="notes"
+            defaultValue={trade?.notes || ""}
             placeholder="Add your trade notes here..."
             className={cn(
               "w-full min-h-[100px]",
@@ -511,7 +570,13 @@ export default function TradeForm({
       )}
 
       <Button type="submit" className="w-full" disabled={isPending}>
-        {isPending ? "Logging..." : "Log Trade"}
+        {isPending
+          ? isEditMode
+            ? "Updating..."
+            : "Logging..."
+          : isEditMode
+          ? "Update Trade"
+          : "Log Trade"}
       </Button>
     </form>
   );

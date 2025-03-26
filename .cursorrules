@@ -47,9 +47,7 @@ Key Conventions
 
 - Use 'nuqs' for URL search parameter state management.
 - Optimize Web Vitals (LCP, CLS, FID).
-- Limit 'use client':
-  - Favor server components and Next.js SSR.
-  - Use only for Web API access in small components.
-  - Avoid for data fetching or state management.
+
+Please check codebase first for existing files and components before creating new ones.
 
 Follow Next.js docs for Data Fetching, Rendering, and Routing.

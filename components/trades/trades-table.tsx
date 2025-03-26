@@ -39,7 +39,7 @@ import {
   EllipsisIcon,
   Loader2,
 } from "lucide-react";
-import { Trade, Strategy } from "@/lib/db/drizzle/schema";
+import { Trade, Strategy, CustomField } from "@/lib/db/drizzle/schema";
 import { format } from "date-fns";
 import {
   DropdownMenu,
@@ -62,9 +62,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useTrades } from "@/lib/db/queries/trade-hooks";
+
+interface ExtendedStrategy extends Strategy {
+  customFields?: CustomField[];
+}
 
 interface TradesTableProps {
-  strategy: Strategy;
+  strategy: ExtendedStrategy;
   isBacktest?: boolean;
 }
 
@@ -112,28 +117,16 @@ export default function TradesTable({
     }
   };
 
-  // Define fetch function for React Query
-  const fetchTrades = async () => {
-    const response = await fetch(
-      `/api/trades?strategyId=${strategy.id}&isBacktest=${isBacktest}&sortField=dateOpened&sortDirection=desc`
-    );
+  // Use the custom hook for fetching trades
+  const { data, isLoading, isError, refetch } = useTrades(
+    strategy.id,
+    isBacktest
+  );
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch trades");
-    }
-
-    return response.json();
-  };
-
-  // Use React Query to fetch trades
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["trades", strategy.id, isBacktest],
-    queryFn: fetchTrades,
-  });
-
-  const { trades } = useMemo(
+  const { trades, total } = useMemo(
     () => ({
       trades: data?.trades || [],
+      total: data?.total || 0,
     }),
     [data]
   );
@@ -240,38 +233,68 @@ export default function TradesTable({
     },
     // Generate columns for each custom field dynamically
     ...useMemo(() => {
-      // Extract custom fields from the first trade or show empty array if no trades
-      if (!trades.length) return [];
+      // Skip if no trades or no custom fields in strategy
+      if (!trades.length || !strategy.customFields) return [];
 
-      const customFields = Object.keys(trades[0]?.customValues || {});
-
-      return customFields.map((fieldName) => ({
-        id: `customField_${fieldName}`,
-        header: fieldName,
-        accessorFn: (row: Trade) => row.customValues[fieldName],
-        cell: ({ row, getValue }: { row: Row<Trade>; getValue: () => any }) => {
-          const value = getValue();
-          if (Array.isArray(value)) {
-            return (
-              <div className="flex flex-wrap gap-1">
-                {value.map((item, index) => (
-                  <Badge
-                    key={`${fieldName}-${index}`}
-                    className="bg-gray-200 text-gray-800 border-gray-200 rounded-sm"
-                  >
-                    {item}
-                  </Badge>
-                ))}
-              </div>
-            );
-          }
-          return <div className="text-sm tracking-tight">{value}</div>;
-        },
-      }));
-    }, [trades]),
+      // Use the strategy's customFields array to determine order
+      return strategy.customFields.map((field: CustomField) => {
+        const fieldName = field.name;
+        return {
+          id: `customField_${fieldName}`,
+          header: fieldName,
+          accessorFn: (row: Trade) => {
+            // Safely parse customValues if it's a string
+            let customValues: Record<string, any> = {};
+            try {
+              if (row.customValues) {
+                if (typeof row.customValues === "string") {
+                  customValues = JSON.parse(row.customValues);
+                } else {
+                  customValues = row.customValues as Record<string, any>;
+                }
+              }
+              return customValues[fieldName] ?? null;
+            } catch (e) {
+              console.error("Error parsing customValues:", e);
+              return null;
+            }
+          },
+          cell: ({
+            row,
+            getValue,
+          }: {
+            row: Row<Trade>;
+            getValue: () => any;
+          }) => {
+            const value = getValue();
+            if (Array.isArray(value)) {
+              return (
+                <div className="flex flex-wrap gap-1">
+                  {value.map((item, index) => (
+                    <Badge
+                      key={`${fieldName}-${index}`}
+                      className="bg-gray-200 text-gray-800 border-gray-200 rounded-sm"
+                    >
+                      {item}
+                    </Badge>
+                  ))}
+                </div>
+              );
+            }
+            return <div className="text-sm tracking-tight">{value || ""}</div>;
+          },
+        };
+      });
+    }, [trades, strategy.customFields]),
     {
       id: "actions",
-      cell: ({ row }) => <TradeActions trade={row.original} />,
+      cell: ({ row }) => (
+        <TradeActions
+          trade={row.original}
+          strategy={strategy}
+          refetchTrades={refetch}
+        />
+      ),
       enableHiding: false,
     },
   ];
@@ -302,9 +325,10 @@ export default function TradesTable({
           strategy={strategy}
           isBacktest={isBacktest}
           onSuccess={() => {
-            // Invalidate the trades query to trigger a refetch
+            // Force immediate refetch with multiple methods
             queryClient.invalidateQueries({
-              queryKey: ["trades", strategy.id, isBacktest],
+              queryKey: ["trades"],
+              exact: false,
             });
           }}
         />
@@ -438,7 +462,15 @@ export default function TradesTable({
   );
 }
 
-function TradeActions({ trade }: { trade: Trade }) {
+function TradeActions({
+  trade,
+  strategy,
+  refetchTrades,
+}: {
+  trade: Trade;
+  strategy: ExtendedStrategy;
+  refetchTrades: () => void;
+}) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
@@ -476,9 +508,30 @@ function TradeActions({ trade }: { trade: Trade }) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem>Edit trade</DropdownMenuItem>
-          <DropdownMenuItem>View details</DropdownMenuItem>
-          <DropdownMenuSeparator />
+          <LogTradeSheet
+            strategy={strategy}
+            trade={trade}
+            isBacktest={!!trade.isBacktest}
+            onSuccess={() => {
+              // Force immediate refetch with multiple methods
+              queryClient.invalidateQueries({
+                queryKey: ["trades"],
+                exact: false,
+                refetchType: "all",
+              });
+
+              // Also invalidate specific query
+              queryClient.invalidateQueries({
+                queryKey: ["trades", trade.strategyId, trade.isBacktest],
+                refetchType: "all",
+              });
+            }}
+            trigger={
+              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                Edit trade
+              </DropdownMenuItem>
+            }
+          />
           <DropdownMenuItem
             className="text-destructive focus:text-destructive"
             onClick={() => setShowDeleteDialog(true)}

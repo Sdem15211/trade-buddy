@@ -3,6 +3,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Strategy } from "@/lib/db/drizzle/schema";
 import TradesTable from "@/components/trades/trades-table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useMetrics } from "@/lib/db/queries/strategy-hooks";
 
 interface LiveTradingDashboardProps {
   strategy: Strategy;
@@ -11,6 +13,9 @@ interface LiveTradingDashboardProps {
 export default function LiveTradingDashboard({
   strategy,
 }: LiveTradingDashboardProps) {
+  // Use the custom hook for fetching metrics
+  const { data: metrics, isLoading } = useMetrics(strategy.id, false);
+
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-3 gap-4">
@@ -23,7 +28,11 @@ export default function LiveTradingDashboard({
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-primary-foreground w-full flex justify-end">
-                57%
+                {isLoading ? (
+                  <Skeleton className="h-8 w-16 bg-primary-foreground/20" />
+                ) : (
+                  `${metrics?.winRate || 0}%`
+                )}
               </div>
             </CardContent>
           </Card>
@@ -36,7 +45,11 @@ export default function LiveTradingDashboard({
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-primary-foreground w-full flex justify-end">
-                81.40%
+                {isLoading ? (
+                  <Skeleton className="h-8 w-16 bg-primary-foreground/20" />
+                ) : (
+                  `${metrics?.totalProfit?.toFixed(2) || 0}%`
+                )}
               </div>
             </CardContent>
           </Card>
@@ -49,7 +62,11 @@ export default function LiveTradingDashboard({
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-primary-foreground w-full flex justify-end">
-                3.85%
+                {isLoading ? (
+                  <Skeleton className="h-8 w-16 bg-primary-foreground/20" />
+                ) : (
+                  `${metrics?.avgReturn?.toFixed(2) || 0}%`
+                )}
               </div>
             </CardContent>
           </Card>

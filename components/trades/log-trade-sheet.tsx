@@ -12,22 +12,27 @@ import {
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
-import { Plus, X } from "lucide-react";
-import { Strategy } from "@/lib/db/drizzle/schema";
+import { Pencil, Plus, X } from "lucide-react";
+import { Strategy, Trade } from "@/lib/db/drizzle/schema";
 import TradeForm from "./trade-form";
 
 interface LogTradeSheetProps {
   strategy: Strategy;
   isBacktest?: boolean;
   onSuccess?: () => void;
+  trade?: Trade;
+  trigger?: React.ReactNode;
 }
 
 export default function LogTradeSheet({
   strategy,
   isBacktest = false,
   onSuccess,
+  trade,
+  trigger,
 }: LogTradeSheetProps) {
   const [open, setOpen] = useState(false);
+  const isEditMode = !!trade;
 
   const handleSuccess = () => {
     setOpen(false);
@@ -39,20 +44,31 @@ export default function LogTradeSheet({
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button>
-          Log Trade
-          <Plus className="w-4 h-4 ml-2" />
-        </Button>
+        {trigger || (
+          <Button
+            variant={isEditMode ? "outline" : "default"}
+            size={isEditMode ? "icon" : "default"}
+          >
+            {isEditMode ? (
+              <Pencil className="w-4 h-4" />
+            ) : (
+              <>
+                Log Trade
+                <Plus className="w-4 h-4 ml-2" />
+              </>
+            )}
+          </Button>
+        )}
       </SheetTrigger>
       <SheetContent className="sm:max-w-md overflow-hidden flex flex-col">
         <div className="flex justify-between items-center pr-8">
           <SheetHeader className="pb-4">
             <SheetTitle className="text-lg font-semibold tracking-tight">
-              Log Trade
+              {isEditMode ? "Edit Trade" : "Log Trade"}
             </SheetTitle>
             <SheetDescription>
-              Record a new trade in your {isBacktest ? "backtest" : "live"}{" "}
-              journal.
+              {isEditMode ? "Update" : "Record a new"} trade in your{" "}
+              {isBacktest ? "backtest" : "live"} journal.
             </SheetDescription>
           </SheetHeader>
           <SheetClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
@@ -84,6 +100,7 @@ export default function LogTradeSheet({
               strategy={strategy}
               isBacktest={isBacktest}
               onSuccess={handleSuccess}
+              trade={trade}
             />
           </div>
         </div>

@@ -1,8 +1,7 @@
 import { getStrategyByName } from "@/lib/db/queries/strategies";
 import { slugToReadable } from "@/lib/utils";
 import { notFound } from "next/navigation";
-import StrategyDetail from "./components/strategy-detail";
-import { Suspense } from "react";
+import StrategyDetail from "../../../../components/strategies/strategy-detail";
 
 type paramsType = Promise<{ name: string }>;
 interface StrategyPageProps {
@@ -18,9 +17,5 @@ export default async function StrategyPage({ params }: StrategyPageProps) {
     return notFound();
   }
 
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <StrategyDetail strategy={strategy} />
-    </Suspense>
-  );
+  return <StrategyDetail strategy={strategy} />;
 }

@@ -22,29 +22,3 @@ export async function getStrategyByName(name: string) {
 
   return foundStrategy;
 }
-
-export async function getRecentTradesByStrategyId(
-  strategyId: string,
-  limit = 5
-) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session?.user?.id) {
-    return [];
-  }
-
-  // Get recent trades for the strategy
-  const trades = await db.query.trade.findMany({
-    where: (fields, { eq, and }) =>
-      and(
-        eq(fields.userId, session.user.id),
-        eq(fields.strategyId, strategyId)
-      ),
-    orderBy: (fields, { desc }) => [desc(fields.createdAt)],
-    limit,
-  });
-
-  return trades;
-}

@@ -3,6 +3,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import LogTradeSheet from "@/components/trades/log-trade-sheet";
 import { Strategy } from "@/lib/db/drizzle/schema";
+import { Skeleton } from "@/components/ui/skeleton";
+import TradesTable from "@/components/trades/trades-table";
+import { useMetrics } from "@/lib/db/queries/strategy-hooks";
 
 interface BacktestTradingDashboardProps {
   strategy: Strategy;
@@ -11,6 +14,9 @@ interface BacktestTradingDashboardProps {
 export default function BacktestTradingDashboard({
   strategy,
 }: BacktestTradingDashboardProps) {
+  // Use the custom hook for fetching metrics
+  const { data: metrics, isLoading } = useMetrics(strategy.id, true);
+
   return (
     <div className="space-y-6">
       {/* Metric Cards */}
@@ -22,7 +28,13 @@ export default function BacktestTradingDashboard({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-emerald-500">47%</div>
+            <div className="text-2xl font-bold text-emerald-500">
+              {isLoading ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                `${metrics?.winRate || 0}%`
+              )}
+            </div>
           </CardContent>
         </Card>
 
@@ -33,7 +45,13 @@ export default function BacktestTradingDashboard({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-emerald-500">61.40%</div>
+            <div className="text-2xl font-bold text-emerald-500">
+              {isLoading ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                `${metrics?.totalProfit?.toFixed(2) || 0}%`
+              )}
+            </div>
           </CardContent>
         </Card>
 
@@ -44,7 +62,13 @@ export default function BacktestTradingDashboard({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-emerald-500">2.85%</div>
+            <div className="text-2xl font-bold text-emerald-500">
+              {isLoading ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                `${metrics?.avgReturn?.toFixed(2) || 0}%`
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -73,15 +97,7 @@ export default function BacktestTradingDashboard({
       </div>
 
       {/* Trades Table */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Recent Trades</CardTitle>
-          <LogTradeSheet strategy={strategy} isBacktest={true} />
-        </CardHeader>
-        <CardContent className="h-[300px] flex items-center justify-center bg-muted/20">
-          <p className="text-muted-foreground">Trade Table Placeholder</p>
-        </CardContent>
-      </Card>
+      <TradesTable strategy={strategy} isBacktest={true} />
     </div>
   );
 }

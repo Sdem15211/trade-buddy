@@ -174,13 +174,6 @@ export const tradeRelations = relations(trade, ({ one }) => ({
   }),
 }));
 
-// Query Config
-export const strategyConfig = {
-  with: {
-    customFields: true,
-  },
-} as const;
-
 export type CustomField = typeof customField.$inferSelect;
 export type Strategy = typeof strategy.$inferSelect;
 export type Trade = typeof trade.$inferSelect;
