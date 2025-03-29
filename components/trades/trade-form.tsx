@@ -3,11 +3,7 @@
 import * as React from "react";
 import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
-import {
-  createTrade,
-  CreateTradeInput,
-  updateTrade,
-} from "@/lib/db/actions/trades";
+import { createTrade, updateTrade } from "@/lib/db/actions/trades";
 import { Strategy, CustomField, Trade } from "@/lib/db/drizzle/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +29,7 @@ import {
 } from "@/components/ui/popover";
 import { CalendarIcon, TrendingUp, TrendingDown } from "lucide-react";
 import MultipleSelector, { Option } from "@/components/ui/multiselect";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ExtendedStrategy extends Strategy {
   customFields?: CustomField[];
@@ -41,7 +38,6 @@ interface ExtendedStrategy extends Strategy {
 interface TradeFormProps {
   strategy: ExtendedStrategy;
   isBacktest?: boolean;
-  onSuccess?: () => void;
   trade?: Trade;
 }
 
@@ -53,84 +49,70 @@ const initialState: ActionResponse = {
 export default function TradeForm({
   strategy,
   isBacktest = false,
-  onSuccess,
   trade,
 }: TradeFormProps) {
-  const isEditMode = !!trade;
-
   const [state, formAction, isPending] = useActionState(
-    isEditMode ? updateTrade : createTrade,
+    trade ? updateTrade : createTrade,
     initialState
   );
 
-  // Parse custom values more reliably
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const parseCustomValues = () => {
-    if (!trade?.customValues) return {};
-
-    try {
-      if (typeof trade.customValues === "string") {
-        return JSON.parse(trade.customValues);
-      } else {
-        return trade.customValues;
-      }
-    } catch (error) {
-      console.error("Error parsing custom values:", error);
-      return {};
-    }
-  };
-
-  // Initialize custom values with more reliable parsing
   const [customValues, setCustomValues] = useState<Record<string, any>>(
-    isEditMode ? parseCustomValues() : {}
+    trade?.customValues || {}
   );
 
   const [tradeStatus, setTradeStatus] = useState<
     "order_placed" | "open" | "closed"
-  >((trade?.status as any) || undefined);
+  >(trade?.status || "order_placed");
 
-  // Add state for selected result
   const [selectedResult, setSelectedResult] = useState<
     "win" | "loss" | "break_even" | null
   >(trade?.result || null);
 
-  // Date state
   const [dateOpened, setDateOpened] = useState<Date | undefined>(
-    trade?.dateOpened
-      ? new Date(trade.dateOpened)
-      : tradeStatus !== "order_placed"
-      ? new Date()
-      : undefined
+    trade?.dateOpened ? new Date(trade.dateOpened) : undefined
   );
 
   const [dateClosed, setDateClosed] = useState<Date | undefined>(
-    trade?.dateClosed
-      ? new Date(trade.dateClosed)
-      : tradeStatus === "closed"
-      ? new Date()
-      : undefined
+    trade?.dateClosed ? new Date(trade.dateClosed) : undefined
   );
+
+  const [asset, setAsset] = useState<string>(trade?.asset || "");
+  const [direction, setDirection] = useState<string>(
+    trade?.direction || "long"
+  );
+  const [profitLoss, setProfitLoss] = useState<string>(
+    trade?.profitLoss?.toString() || ""
+  );
+  const [notes, setNotes] = useState<string>(trade?.notes || "");
 
   const assetOptions = getAssetsByInstrument(strategy.instrument);
 
-  // Generate unique IDs for form fields
   const statusId = "trade-status";
   const assetId = "trade-asset";
   const resultId = "trade-result";
   const profitLossId = "trade-profit-loss";
   const notesId = "trade-notes";
 
-  // Clear form and call onSuccess when submission is successful
+  const queryClient = useQueryClient();
+
   useEffect(() => {
+    console.log("State changed:", {
+      success: state.success,
+      message: state.message,
+      trade: state.trade,
+    });
     if (state.success && state.message) {
       toast.success(state.message);
-      if (onSuccess) {
-        onSuccess();
-      }
+      queryClient.invalidateQueries({
+        queryKey: ["trades", strategy.id, isBacktest],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["metrics", strategy.id, isBacktest],
+      });
     }
-  }, [state.success, state.message, onSuccess]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.success, state.message]);
 
-  // Update dateOpened when status changes
   useEffect(() => {
     if (tradeStatus === "order_placed") {
       setDateOpened(undefined);
@@ -140,18 +122,11 @@ export default function TradeForm({
 
     if (tradeStatus !== "closed") {
       setDateClosed(undefined);
+    } else if (tradeStatus === "closed" && !dateClosed) {
+      setDateClosed(new Date());
     }
-  }, [tradeStatus, dateOpened]);
+  }, [tradeStatus, dateOpened, dateClosed]);
 
-  // Keep custom field data in sync with the trade prop
-  useEffect(() => {
-    if (isEditMode && trade?.customValues) {
-      const parsedValues = parseCustomValues();
-      setCustomValues(parsedValues);
-    }
-  }, [isEditMode, parseCustomValues, trade?.customValues]);
-
-  // Handle custom field changes
   const handleCustomFieldChange = (fieldId: string, value: any) => {
     setCustomValues((prev) => ({
       ...prev,
@@ -159,26 +134,32 @@ export default function TradeForm({
     }));
   };
 
-  // Prepare form action with custom values
   const handleSubmit = (formData: FormData) => {
-    // Add date values as ISO strings if they exist
-    if (dateOpened) {
-      formData.append("dateOpened", dateOpened.toISOString().split("T")[0]);
+    console.log("Submitting form with state:", state);
+    if (
+      dateOpened &&
+      dateOpened instanceof Date &&
+      !isNaN(dateOpened.getTime())
+    ) {
+      const dateOpenedString = dateOpened.toISOString();
+      formData.append("dateOpened", dateOpenedString);
     }
 
-    if (dateClosed) {
-      formData.append("dateClosed", dateClosed.toISOString().split("T")[0]);
+    if (
+      dateClosed &&
+      dateClosed instanceof Date &&
+      !isNaN(dateClosed.getTime())
+    ) {
+      const dateClosedString = dateClosed.toISOString();
+      formData.append("dateClosed", dateClosedString);
     }
 
-    // Ensure custom values are stringified properly
     const customValuesString = JSON.stringify(customValues);
     formData.append("customValues", customValuesString);
 
     formData.append("isBacktest", isBacktest.toString());
     formData.append("strategyId", strategy.id);
-
-    // For edit mode, add trade id
-    if (isEditMode && trade) {
+    if (trade?.id) {
       formData.append("id", trade.id);
     }
 
@@ -193,7 +174,7 @@ export default function TradeForm({
           <Label htmlFor={statusId}>Status</Label>
           <Select
             name="status"
-            defaultValue={trade?.status || "open"}
+            defaultValue={tradeStatus}
             onValueChange={(value) => setTradeStatus(value as any)}
             required
           >
@@ -214,7 +195,7 @@ export default function TradeForm({
         {/* Asset */}
         <div className="space-y-2">
           <Label htmlFor={assetId}>Asset</Label>
-          <Select name="asset" defaultValue={trade?.asset} required>
+          <Select name="asset" value={asset} onValueChange={setAsset} required>
             <SelectTrigger id={assetId} className="w-full">
               <SelectValue placeholder="Select asset" />
             </SelectTrigger>
@@ -236,7 +217,8 @@ export default function TradeForm({
           <Label>Direction</Label>
           <RadioGroup
             name="direction"
-            defaultValue={trade?.direction || "long"}
+            value={direction}
+            onValueChange={setDirection}
             className="grid grid-cols-2 gap-2"
           >
             <div className="border-input has-data-[state=checked]:border-ring relative flex flex-col gap-4 rounded-md border p-4 shadow-xs outline-none">
@@ -356,7 +338,7 @@ export default function TradeForm({
               <Label htmlFor={resultId}>Result</Label>
               <Select
                 name="result"
-                defaultValue={trade?.result || ""}
+                value={selectedResult || "win"}
                 onValueChange={(value) =>
                   setSelectedResult(value as "win" | "loss" | "break_even")
                 }
@@ -381,6 +363,19 @@ export default function TradeForm({
               <Input
                 type="text"
                 inputMode="decimal"
+                value={profitLoss}
+                onChange={(e) => {
+                  let value = e.target.value;
+                  // Enforce positive values for wins
+                  if (selectedResult === "win" && parseFloat(value) < 0) {
+                    value = Math.abs(parseFloat(value)).toString();
+                  }
+                  // Enforce negative values for losses
+                  if (selectedResult === "loss" && parseFloat(value) > 0) {
+                    value = (-Math.abs(parseFloat(value))).toString();
+                  }
+                  setProfitLoss(value);
+                }}
                 pattern={
                   selectedResult === "win"
                     ? "[0-9]*[.]?[0-9]+"
@@ -390,7 +385,6 @@ export default function TradeForm({
                 }
                 id={profitLossId}
                 name="profitLoss"
-                defaultValue={trade?.profitLoss?.toString() || ""}
                 placeholder={
                   selectedResult === "win"
                     ? "0.00"
@@ -412,26 +406,6 @@ export default function TradeForm({
                     ? undefined
                     : undefined
                 }
-                onChange={(e) => {
-                  // Enforce positive values for wins
-                  if (
-                    selectedResult === "win" &&
-                    parseFloat(e.target.value) < 0
-                  ) {
-                    e.target.value = Math.abs(
-                      parseFloat(e.target.value)
-                    ).toString();
-                  }
-                  // Enforce negative values for losses
-                  if (
-                    selectedResult === "loss" &&
-                    parseFloat(e.target.value) > 0
-                  ) {
-                    e.target.value = (-Math.abs(
-                      parseFloat(e.target.value)
-                    )).toString();
-                  }
-                }}
                 className={cn(
                   "w-full",
                   state?.errors?.profitLoss ? "border-red-500" : ""
@@ -488,7 +462,7 @@ export default function TradeForm({
                   ) : field.type === "select" ? (
                     <Select
                       name={`custom-${field.name}`}
-                      defaultValue={customValues[field.name] || ""}
+                      value={customValues[field.name] || ""}
                       onValueChange={(value) =>
                         handleCustomFieldChange(field.name, value)
                       }
@@ -549,7 +523,8 @@ export default function TradeForm({
           <Textarea
             id={notesId}
             name="notes"
-            defaultValue={trade?.notes || ""}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
             placeholder="Add your trade notes here..."
             className={cn(
               "w-full min-h-[100px]",
@@ -570,12 +545,12 @@ export default function TradeForm({
       )}
 
       <Button type="submit" className="w-full" disabled={isPending}>
-        {isPending
-          ? isEditMode
+        {trade
+          ? isPending
             ? "Updating..."
-            : "Logging..."
-          : isEditMode
-          ? "Update Trade"
+            : "Update Trade"
+          : isPending
+          ? "Logging..."
           : "Log Trade"}
       </Button>
     </form>

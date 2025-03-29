@@ -19,56 +19,36 @@ import TradeForm from "./trade-form";
 interface LogTradeSheetProps {
   strategy: Strategy;
   isBacktest?: boolean;
-  onSuccess?: () => void;
+  edit?: boolean;
   trade?: Trade;
-  trigger?: React.ReactNode;
 }
 
 export default function LogTradeSheet({
   strategy,
   isBacktest = false,
-  onSuccess,
+  edit = false,
   trade,
-  trigger,
 }: LogTradeSheetProps) {
   const [open, setOpen] = useState(false);
-  const isEditMode = !!trade;
-
-  const handleSuccess = () => {
-    setOpen(false);
-    if (onSuccess) {
-      onSuccess();
-    }
-  };
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        {trigger || (
-          <Button
-            variant={isEditMode ? "outline" : "default"}
-            size={isEditMode ? "icon" : "default"}
-          >
-            {isEditMode ? (
-              <Pencil className="w-4 h-4" />
-            ) : (
-              <>
-                Log Trade
-                <Plus className="w-4 h-4 ml-2" />
-              </>
-            )}
-          </Button>
-        )}
+        <Button variant="default" size="default">
+          {edit ? "Edit Trade" : "Log Trade"}
+          <Plus className="w-4 h-4 ml-2" />
+        </Button>
       </SheetTrigger>
       <SheetContent className="sm:max-w-md overflow-hidden flex flex-col">
         <div className="flex justify-between items-center pr-8">
           <SheetHeader className="pb-4">
             <SheetTitle className="text-lg font-semibold tracking-tight">
-              {isEditMode ? "Edit Trade" : "Log Trade"}
+              {edit ? "Edit Trade" : "Log Trade"}
             </SheetTitle>
             <SheetDescription>
-              {isEditMode ? "Update" : "Record a new"} trade in your{" "}
-              {isBacktest ? "backtest" : "live"} journal.
+              {edit
+                ? "Edit an existing trade in your journal."
+                : "Record a new trade in your journal."}
             </SheetDescription>
           </SheetHeader>
           <SheetClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
@@ -96,12 +76,15 @@ export default function LogTradeSheet({
             }
           `}</style>
           <div className="mt-2 pb-8 scrollbar-hide">
-            <TradeForm
-              strategy={strategy}
-              isBacktest={isBacktest}
-              onSuccess={handleSuccess}
-              trade={trade}
-            />
+            {edit ? (
+              <TradeForm
+                strategy={strategy}
+                isBacktest={isBacktest}
+                trade={trade as Trade}
+              />
+            ) : (
+              <TradeForm strategy={strategy} isBacktest={isBacktest} />
+            )}
           </div>
         </div>
       </SheetContent>

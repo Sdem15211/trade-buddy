@@ -67,13 +67,6 @@ export async function createTrade(
     };
   }
 
-  if (formData.entries().next().done) {
-    return {
-      success: false,
-      message: "",
-    };
-  }
-
   const rawData = Object.fromEntries(formData.entries());
 
   let customValuesData = {};
@@ -91,8 +84,19 @@ export async function createTrade(
   }
 
   // Convert string dates to Date objects if they exist
-  const dateOpened = rawData.dateOpened ? rawData.dateOpened.toString() : null;
-  const dateClosed = rawData.dateClosed ? rawData.dateClosed.toString() : null;
+  const dateOpened = rawData.dateOpened
+    ? new Date(rawData.dateOpened.toString()).toISOString()
+    : null;
+  const dateClosed = rawData.dateClosed
+    ? new Date(rawData.dateClosed.toString()).toISOString()
+    : null;
+
+  console.log("Date values:", {
+    rawDateOpened: rawData.dateOpened,
+    rawDateClosed: rawData.dateClosed,
+    parsedDateOpened: dateOpened,
+    parsedDateClosed: dateClosed,
+  });
 
   // Parse profit/loss as a decimal number
   let profitLossValue = null;
@@ -258,8 +262,19 @@ export async function updateTrade(
   }
 
   // Convert string dates to Date objects if they exist
-  const dateOpened = rawData.dateOpened ? rawData.dateOpened.toString() : null;
-  const dateClosed = rawData.dateClosed ? rawData.dateClosed.toString() : null;
+  const dateOpened = rawData.dateOpened
+    ? new Date(rawData.dateOpened.toString()).toISOString()
+    : null;
+  const dateClosed = rawData.dateClosed
+    ? new Date(rawData.dateClosed.toString()).toISOString()
+    : null;
+
+  console.log("Date values:", {
+    rawDateOpened: rawData.dateOpened,
+    rawDateClosed: rawData.dateClosed,
+    parsedDateOpened: dateOpened,
+    parsedDateClosed: dateClosed,
+  });
 
   // Parse profit/loss as a decimal number
   let profitLossValue = null;

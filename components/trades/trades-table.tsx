@@ -21,9 +21,7 @@ import {
 } from "@/components/ui/table";
 import {
   ColumnDef,
-  ColumnFiltersState,
   PaginationState,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -45,10 +43,9 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import LogTradeSheet from "@/components/trades/log-trade-sheet";
 import { toast } from "sonner";
 import { deleteTrade } from "@/lib/db/actions/trades";
@@ -77,10 +74,6 @@ export default function TradesTable({
   strategy,
   isBacktest = false,
 }: TradesTableProps) {
-  const queryClient = useQueryClient();
-
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -117,16 +110,11 @@ export default function TradesTable({
     }
   };
 
-  // Use the custom hook for fetching trades
-  const { data, isLoading, isError, refetch } = useTrades(
-    strategy.id,
-    isBacktest
-  );
+  const { data, isLoading, isError } = useTrades(strategy.id, isBacktest);
 
-  const { trades, total } = useMemo(
+  const { trades } = useMemo(
     () => ({
       trades: data?.trades || [],
-      total: data?.total || 0,
     }),
     [data]
   );
@@ -233,8 +221,7 @@ export default function TradesTable({
     },
     // Generate columns for each custom field dynamically
     ...useMemo(() => {
-      // Skip if no trades or no custom fields in strategy
-      if (!trades.length || !strategy.customFields) return [];
+      if (!strategy.customFields) return [];
 
       // Use the strategy's customFields array to determine order
       return strategy.customFields.map((field: CustomField) => {
@@ -285,14 +272,14 @@ export default function TradesTable({
           },
         };
       });
-    }, [trades, strategy.customFields]),
+    }, [, strategy.customFields]),
     {
       id: "actions",
       cell: ({ row }) => (
         <TradeActions
           trade={row.original}
           strategy={strategy}
-          refetchTrades={refetch}
+          isBacktest={isBacktest}
         />
       ),
       enableHiding: false,
@@ -306,12 +293,8 @@ export default function TradesTable({
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
     manualPagination: false,
     state: {
-      columnFilters,
-      columnVisibility,
       pagination,
     },
     onPaginationChange: setPagination,
@@ -321,22 +304,12 @@ export default function TradesTable({
     <Card className="relative overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Trade journal</CardTitle>
-        <LogTradeSheet
-          strategy={strategy}
-          isBacktest={isBacktest}
-          onSuccess={() => {
-            // Force immediate refetch with multiple methods
-            queryClient.invalidateQueries({
-              queryKey: ["trades"],
-              exact: false,
-            });
-          }}
-        />
+        <LogTradeSheet strategy={strategy} isBacktest={isBacktest} />
       </CardHeader>
       <CardContent>
         {/* Table */}
         {isLoading ? (
-          <div className="h-[400px] w-full flex items-center justify-center">
+          <div className="h-[400px] w-full flex items-center  justify-center">
             <Loader2 className="w-4 h-4 animate-spin" />
             <div className="text-muted-foreground">Loading trades...</div>
           </div>
@@ -465,11 +438,11 @@ export default function TradesTable({
 function TradeActions({
   trade,
   strategy,
-  refetchTrades,
+  isBacktest,
 }: {
   trade: Trade;
   strategy: ExtendedStrategy;
-  refetchTrades: () => void;
+  isBacktest: boolean;
 }) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -510,27 +483,9 @@ function TradeActions({
         <DropdownMenuContent align="end">
           <LogTradeSheet
             strategy={strategy}
+            isBacktest={isBacktest}
+            edit
             trade={trade}
-            isBacktest={!!trade.isBacktest}
-            onSuccess={() => {
-              // Force immediate refetch with multiple methods
-              queryClient.invalidateQueries({
-                queryKey: ["trades"],
-                exact: false,
-                refetchType: "all",
-              });
-
-              // Also invalidate specific query
-              queryClient.invalidateQueries({
-                queryKey: ["trades", trade.strategyId, trade.isBacktest],
-                refetchType: "all",
-              });
-            }}
-            trigger={
-              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                Edit trade
-              </DropdownMenuItem>
-            }
           />
           <DropdownMenuItem
             className="text-destructive focus:text-destructive"

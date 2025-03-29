@@ -13,7 +13,6 @@ interface LiveTradingDashboardProps {
 export default function LiveTradingDashboard({
   strategy,
 }: LiveTradingDashboardProps) {
-  // Use the custom hook for fetching metrics
   const { data: metrics, isLoading } = useMetrics(strategy.id, false);
 
   return (
