@@ -2,11 +2,11 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { db } from "../db";
-import { auth } from "../../auth/auth";
+import { db } from "@/lib/db/db";
+import { auth } from "@/lib/auth/auth";
 import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
-import { trade } from "../drizzle/schema";
+import { trade } from "@/lib/db/drizzle/schema";
 import { ActionResponse } from "@/lib/types/strategies";
 import { createSlug } from "@/lib/utils";
 

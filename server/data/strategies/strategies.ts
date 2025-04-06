@@ -1,5 +1,7 @@
+import "server-only";
+
 import { headers } from "next/headers";
-import { db } from "../db";
+import { db } from "@/lib/db/db";
 import { auth } from "@/lib/auth/auth";
 
 export async function getStrategyByName(name: string) {

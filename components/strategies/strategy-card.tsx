@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Calendar, MoreHorizontal, Trash2 } from "lucide-react";
-import { deleteStrategy } from "@/lib/db/actions/strategies";
+import { deleteStrategy } from "@/server/actions/strategies";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createSlug } from "@/lib/utils";

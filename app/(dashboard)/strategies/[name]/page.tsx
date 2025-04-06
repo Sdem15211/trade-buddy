@@ -1,4 +1,4 @@
-import { getStrategyByName } from "@/lib/db/queries/strategies";
+import { getStrategyByName } from "@/server/data/strategies/strategies";
 import { slugToReadable } from "@/lib/utils";
 import { notFound } from "next/navigation";
 import StrategyDetail from "../../../../components/strategies/strategy-detail";

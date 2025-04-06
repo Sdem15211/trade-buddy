@@ -1,9 +1,8 @@
 "use client";
 
-import * as React from "react";
 import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { createTrade, updateTrade } from "@/lib/db/actions/trades";
+import { createTrade, updateTrade } from "@/server/actions/trades";
 import { Strategy, CustomField, Trade } from "@/lib/db/drizzle/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useActionState, useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
-import { createStrategy } from "@/lib/db/actions/strategies";
+import { createStrategy } from "@/server/actions/strategies";
 import { instrumentOptions } from "@/lib/constants/assets";
 import {
   Dialog,

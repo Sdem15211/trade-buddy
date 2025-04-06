@@ -48,7 +48,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import LogTradeSheet from "@/components/trades/log-trade-sheet";
 import { toast } from "sonner";
-import { deleteTrade } from "@/lib/db/actions/trades";
+import { deleteTrade } from "@/server/actions/trades";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -59,7 +59,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useTrades } from "@/lib/db/queries/trade-hooks";
+import { useTrades } from "@/server/data/trades/hooks/trade-hooks";
 
 interface ExtendedStrategy extends Strategy {
   customFields?: CustomField[];

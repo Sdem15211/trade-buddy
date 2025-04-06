@@ -5,7 +5,7 @@ import LogTradeSheet from "@/components/trades/log-trade-sheet";
 import { Strategy } from "@/lib/db/drizzle/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import TradesTable from "@/components/trades/trades-table";
-import { useMetrics } from "@/lib/db/queries/strategy-hooks";
+import { useMetrics } from "@/server/data/strategies/hooks/strategy-hooks";
 
 interface BacktestTradingDashboardProps {
   strategy: Strategy;
