@@ -36,6 +36,8 @@ import {
   ChevronRightIcon,
   EllipsisIcon,
   Loader2,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { Trade, Strategy, CustomField } from "@/lib/db/drizzle/schema";
 import { format } from "date-fns";
@@ -78,6 +80,18 @@ export default function TradesTable({
     pageIndex: 0,
     pageSize: 10,
   });
+
+  // *** Add state for editing trade ***
+  const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
+
+  // *** Handlers for edit sheet ***
+  const handleEditOpen = (trade: Trade) => {
+    setEditingTrade(trade);
+  };
+
+  const handleEditClose = () => {
+    setEditingTrade(null);
+  };
 
   const formatDate = (date: string | Date | null) => {
     if (!date) return null;
@@ -280,6 +294,7 @@ export default function TradesTable({
           trade={row.original}
           strategy={strategy}
           isBacktest={isBacktest}
+          onEdit={handleEditOpen}
         />
       ),
       enableHiding: false,
@@ -431,6 +446,22 @@ export default function TradesTable({
           </Pagination>
         </div>
       </CardContent>
+
+      {/* Render Edit Sheet outside the table structure */}
+      {editingTrade && (
+        <LogTradeSheet
+          strategy={strategy}
+          isBacktest={isBacktest}
+          edit={true}
+          trade={editingTrade}
+          open={!!editingTrade}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              handleEditClose();
+            }
+          }}
+        />
+      )}
     </Card>
   );
 }
@@ -439,10 +470,12 @@ function TradeActions({
   trade,
   strategy,
   isBacktest,
+  onEdit,
 }: {
   trade: Trade;
   strategy: ExtendedStrategy;
   isBacktest: boolean;
+  onEdit: (trade: Trade) => void;
 }) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -455,9 +488,11 @@ function TradeActions({
 
       if (result.success) {
         toast.success(result.message);
-        // Invalidate the trades query to trigger a refetch
         queryClient.invalidateQueries({
           queryKey: ["trades", trade.strategyId, trade.isBacktest],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["metrics", trade.strategyId, trade.isBacktest],
         });
       } else {
         toast.error(result.message || "Failed to delete trade");
@@ -472,29 +507,25 @@ function TradeActions({
   };
 
   return (
-    <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button size="icon" variant="ghost">
-            <EllipsisIcon size={16} aria-hidden="true" />
-            <span className="sr-only">Open menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <LogTradeSheet
-            strategy={strategy}
-            isBacktest={isBacktest}
-            edit
-            trade={trade}
-          />
-          <DropdownMenuItem
-            className="text-destructive focus:text-destructive"
-            onClick={() => setShowDeleteDialog(true)}
-          >
-            Delete trade
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+    <div className="flex items-center justify-end space-x-2">
+      <Button
+        size="icon"
+        variant="ghost"
+        onClick={() => onEdit(trade)}
+        aria-label="Edit trade"
+      >
+        <Pencil size={16} />
+      </Button>
+
+      <Button
+        size="icon"
+        variant="ghost"
+        className="text-destructive hover:text-destructive"
+        onClick={() => setShowDeleteDialog(true)}
+        aria-label="Delete trade"
+      >
+        <Trash2 size={16} />
+      </Button>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent className="max-w-md">
@@ -517,6 +548,6 @@ function TradeActions({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </div>
   );
 }

@@ -38,6 +38,7 @@ interface TradeFormProps {
   strategy: ExtendedStrategy;
   isBacktest?: boolean;
   trade?: Trade;
+  onSuccess?: () => void;
 }
 
 const initialState: ActionResponse = {
@@ -49,6 +50,7 @@ export default function TradeForm({
   strategy,
   isBacktest = false,
   trade,
+  onSuccess,
 }: TradeFormProps) {
   const [state, formAction, isPending] = useActionState(
     trade ? updateTrade : createTrade,
@@ -95,11 +97,6 @@ export default function TradeForm({
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    console.log("State changed:", {
-      success: state.success,
-      message: state.message,
-      trade: state.trade,
-    });
     if (state.success && state.message) {
       toast.success(state.message);
       queryClient.invalidateQueries({
@@ -108,9 +105,19 @@ export default function TradeForm({
       queryClient.invalidateQueries({
         queryKey: ["metrics", strategy.id, isBacktest],
       });
+      onSuccess?.();
+    } else if (!state.success && state.message) {
+      console.error("Form Action Failed:", state.message, state.errors);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.success, state.message]);
+  }, [
+    state.success,
+    state.message,
+    onSuccess,
+    queryClient,
+    strategy.id,
+    isBacktest,
+  ]);
 
   useEffect(() => {
     if (tradeStatus === "order_placed") {
@@ -134,7 +141,6 @@ export default function TradeForm({
   };
 
   const handleSubmit = (formData: FormData) => {
-    console.log("Submitting form with state:", state);
     if (
       dateOpened &&
       dateOpened instanceof Date &&
@@ -538,12 +544,12 @@ export default function TradeForm({
 
       {/* Error message */}
       {state?.message && !state.success && (
-        <div className="bg-red-100 p-3 rounded-md">
+        <div className="bg-red-100 p-3 rounded-md mt-4" role="alert">
           <p className="text-sm text-red-800">{state.message}</p>
         </div>
       )}
 
-      <Button type="submit" className="w-full" disabled={isPending}>
+      <Button type="submit" className="w-full mt-4" disabled={isPending}>
         {trade
           ? isPending
             ? "Updating..."

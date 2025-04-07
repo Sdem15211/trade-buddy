@@ -91,13 +91,6 @@ export async function createTrade(
     ? new Date(rawData.dateClosed.toString()).toISOString()
     : null;
 
-  console.log("Date values:", {
-    rawDateOpened: rawData.dateOpened,
-    rawDateClosed: rawData.dateClosed,
-    parsedDateOpened: dateOpened,
-    parsedDateClosed: dateClosed,
-  });
-
   // Parse profit/loss as a decimal number
   let profitLossValue = null;
   if (rawData.profitLoss) {
@@ -254,7 +247,6 @@ export async function updateTrade(
       customValuesData = JSON.parse(customValuesJson);
     }
   } catch (error) {
-    console.error("Error parsing custom values:", error);
     return {
       success: false,
       message: "Invalid custom values data",
@@ -268,15 +260,6 @@ export async function updateTrade(
   const dateClosed = rawData.dateClosed
     ? new Date(rawData.dateClosed.toString()).toISOString()
     : null;
-
-  console.log("Date values:", {
-    rawDateOpened: rawData.dateOpened,
-    rawDateClosed: rawData.dateClosed,
-    parsedDateOpened: dateOpened,
-    parsedDateClosed: dateClosed,
-  });
-
-  // Parse profit/loss as a decimal number
   let profitLossValue = null;
   if (rawData.profitLoss) {
     const profitLossString = rawData.profitLoss.toString().trim();
@@ -308,7 +291,6 @@ export async function updateTrade(
   ) {
     errors.profitLoss = ["Profit must be positive for wins"];
   }
-
   if (
     dataToValidate.result === "loss" &&
     dataToValidate.profitLoss !== null &&
@@ -323,30 +305,22 @@ export async function updateTrade(
 
   if (!validationResult.success || Object.keys(errors).length > 0) {
     let validationErrors = {};
-
     if (!validationResult.success) {
       validationErrors = validationResult.error.flatten().fieldErrors;
     }
-
-    // Merge custom errors with schema validation errors
-    const mergedErrors = {
-      ...validationErrors,
-      ...errors,
-    };
-
-    console.error("Validation errors:", mergedErrors);
-    return {
+    const mergedErrors = { ...validationErrors, ...errors };
+    const response: ActionResponse = {
       success: false,
       message: "Please fix errors in the form",
       errors: mergedErrors,
       data: dataToValidate,
     };
+    return response;
   }
 
   const validatedData = validationResult.data;
 
   try {
-    // Get the strategy first to ensure it exists and get its name
     const userStrategy = await db.query.strategy.findFirst({
       where: (fields, { eq, and }) =>
         and(
@@ -408,17 +382,18 @@ export async function updateTrade(
     const strategySlug = createSlug(userStrategy.name);
     revalidatePath(`/strategies/${strategySlug}`);
 
-    return {
+    const response: ActionResponse = {
       success: true,
       message: "Trade updated successfully",
       trade: updatedTrade,
     };
+    return response;
   } catch (error) {
-    console.error("Error updating trade:", error);
-    return {
+    const response: ActionResponse = {
       success: false,
       message: "Failed to update trade. Please try again.",
     };
+    return response;
   }
 }
 

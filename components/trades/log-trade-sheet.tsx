@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -12,7 +12,7 @@ import {
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
-import { Pencil, Plus, X } from "lucide-react";
+import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { Strategy, Trade } from "@/lib/db/drizzle/schema";
 import TradeForm from "./trade-form";
 
@@ -21,6 +21,8 @@ interface LogTradeSheetProps {
   isBacktest?: boolean;
   edit?: boolean;
   trade?: Trade;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export default function LogTradeSheet({
@@ -28,17 +30,31 @@ export default function LogTradeSheet({
   isBacktest = false,
   edit = false,
   trade,
+  open: controlledOpen,
+  onOpenChange,
 }: LogTradeSheetProps) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
+
+  const handleSuccess = useCallback(() => {
+    setOpen(false);
+  }, [setOpen]);
+
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+  };
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <Button variant="default" size="default">
-          {edit ? "Edit Trade" : "Log Trade"}
-          <Plus className="w-4 h-4 ml-2" />
-        </Button>
-      </SheetTrigger>
+    <Sheet open={open} onOpenChange={handleOpenChange}>
+      {!edit && controlledOpen === undefined && (
+        <SheetTrigger asChild>
+          <Button variant="default" size="default">
+            Log Trade
+            <Plus className="w-4 h-4 ml-2" />
+          </Button>
+        </SheetTrigger>
+      )}
       <SheetContent className="sm:max-w-md overflow-hidden flex flex-col">
         <div className="flex justify-between items-center pr-8">
           <SheetHeader className="pb-4">
@@ -81,9 +97,14 @@ export default function LogTradeSheet({
                 strategy={strategy}
                 isBacktest={isBacktest}
                 trade={trade as Trade}
+                onSuccess={handleSuccess}
               />
             ) : (
-              <TradeForm strategy={strategy} isBacktest={isBacktest} />
+              <TradeForm
+                strategy={strategy}
+                isBacktest={isBacktest}
+                onSuccess={handleSuccess}
+              />
             )}
           </div>
         </div>
