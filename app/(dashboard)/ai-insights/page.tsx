@@ -2,14 +2,14 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth/auth";
 
-export default async function AIInsightsPage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+export default function AIInsightsPage() {
+  // const session = await auth.api.getSession({
+  //   headers: await headers(),
+  // });
 
-  if (!session) {
-    redirect("/");
-  }
+  // if (!session) {
+  //   redirect("/");
+  // }
 
   return (
     <div className="space-y-6">
